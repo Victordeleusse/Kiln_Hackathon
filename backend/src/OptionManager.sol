@@ -17,13 +17,12 @@ contract OptionsMarketplace {
     enum OptionType { PUT, CALL }
 
     struct Option {
-        OptionType optionType; // PUT or CALL
-        address seller;        // Address of the seller
-        address buyer;         // Address of the buyer (initialized to 0x0)
-        uint256 strikePrice;   // Strike price in wei
-        uint256 premium;       // Premium price in wei
-        uint256 expiry;        // Expiry timestamp
-        bool exercised;        // Whether the option has been exercised
+        OptionType optionType;
+        address seller;
+        address buyer;
+        uint256 strikePrice;
+        uint256 premium;
+        uint256 expiry;
     }
 
 	/* State Variables */
