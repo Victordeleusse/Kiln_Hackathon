@@ -6,12 +6,19 @@ import "../src/OptionManager.sol";
 contract MockERC20 is IERC20 {
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
+    uint256 private _totalSupply;
 
     function mint(address to, uint256 value) public {
         balanceOf[to] += value;
+        _totalSupply += value;
+    }
+
+    function totalSupply() public view override returns (uint256) {
+        return _totalSupply;
     }
 
     function transfer(address to, uint256 value) public override returns (bool) {
+        require(balanceOf[msg.sender] >= value, "Insufficient balance");
         balanceOf[msg.sender] -= value;
         balanceOf[to] += value;
         return true;
@@ -31,3 +38,4 @@ contract MockERC20 is IERC20 {
         return true;
     }
 }
+
