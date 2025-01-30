@@ -2,15 +2,16 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/AutomationCompatibleInterface.sol";
-
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
 
 /**
  * @title OptionManager
  */
 
-contract OptionManager {
+contract OptionManager is AutomationCompatibleInterface {
+
+    using SafeERC20 for IERC20;
 
 	/* Errors */
 	error OptionManager__buyOptionFailed();
@@ -49,6 +50,8 @@ contract OptionManager {
     
     /* Constants */
     address private constant USDC_ADDRESS = 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238;
+    address private constant ETH_ADDRESS = address(0);
+
 
 	/* Events */
 	event OptionCreated(
@@ -70,22 +73,20 @@ contract OptionManager {
     /**
      * @dev Chainlink Keepers function that checks if any option has expired.
      */
-    function checkUpkeep(bytes calldata) external view override returns (bool upkeepNeeded, bytes memory performData) {
+    function checkUpkeep(bytes calldata) external override returns (bool upkeepNeeded, bytes memory performData) {
         uint256[] memory exercisedOptions = new uint256[](optionCount);
         uint256 count = 0;
 
         for (uint256 i = 0; i < optionCount; i++) {
             if (block.timestamp >= options[i].expiry) {
-                if (options[i].assetTransferedToTheContract) {
+                Option storage option = options[i];
+                if (option.assetTransferedToTheContract) {
                     exercisedOptions[count] = i;
                     count++;
                 }
                 else {
-                    // Give back the money to the seller
-                    bool usdcTransferSuccess = IERC20(USDC_ADDRESS).transfer(option.seller, option.strikePrice);
-                    if (!usdcTransferSuccess) {
-                        revert OptionManager_USDCTransferFailedAtExpiry();
-                    }
+                    // Give back the money to the seller if put option buyer has not transfered the asset at expiry
+                    IERC20(USDC_ADDRESS).safeTransfer(option.seller, option.strikePrice);
                     emit OptionDeleted(i);
                     delete options[i];
                 }
@@ -113,25 +114,23 @@ contract OptionManager {
     }
 
     /**
-     * @dev To set internal logic after an option is exercised at expiry.
+     * @dev To set internal logic after a put option is exercised at expiry.
      * @param optionId The ID of the option to settle.
      */
     function settleExpiredOption(uint256 optionId) internal {
         Option storage option = options[optionId];
         // Ensure no error from chainlink automation trigger 
         require(block.timestamp >= option.expiry, "Option has not expired yet");
-        require(option.exercised, "Option was not exercised");
 
         // Transfer the asset amount from contract to the seller
-        bool assetTransferSuccess = IERC20(option.asset).transfer(option.seller, option.assetAmount);
-        if (!assetTransferSuccess) {
-            revert OptionManager_AssetTransferFailedAtExpiry();
-        }
-        // Transfer the strike price in USDC from contract to the buyer
-        bool usdcTransferSuccess = IERC20(USDC_ADDRESS).transfer(option.buyer, option.strikePrice);
-        if (!usdcTransferSuccess) {
-            revert OptionManager_USDCTransferFailedAtExpiry();
-        }
+        if (option.asset == ETH_ADDRESS) {
+            (bool success, ) = payable(option.seller).call{value: option.assetAmount}("");
+            require(success, "ETH transfer failed");
+        } else {
+            IERC20(option.asset).safeTransfer(option.seller, option.assetAmount);}
+
+        // Transfer the strike price from contract to the buyer
+        IERC20(USDC_ADDRESS).safeTransfer(option.buyer, option.strikePrice);
         
         // Delete the option from storage
         emit OptionDeleted(optionId);
@@ -165,11 +164,9 @@ contract OptionManager {
             revert OptionManager__InsufficientBalanceSellerPut();
         }
 
-        // Transfer USDC strike price to the contract
-        bool usdcTransferSuccess = IERC20(USDC_ADDRESS).transferFrom(msg.sender, address(this), strikePrice);
-        if (!usdcTransferSuccess) {
-            revert OptionManager__InitialTransferStrikePriceFundFailed();
-        }
+        // Transfer USDC strike price to the contract safely
+        IERC20(USDC_ADDRESS).safeTransferFrom(msg.sender, address(this), strikePrice);
+
 
         options[optionCount] = Option({
             optionType: OptionType.PUT,
@@ -181,8 +178,7 @@ contract OptionManager {
 			asset: asset,
         	assetAmount: assetAmount,
             assetTransferedToTheContract: false,
-            fundTransferedToTheContract: true,
-            exercised: true
+            fundTransferedToTheContract: true
         });
 
         emit OptionCreated(optionCount, OptionType.PUT, msg.sender, strikePrice, premium, asset, assetAmount, expiry);
@@ -196,17 +192,14 @@ contract OptionManager {
     function deleteOptionPut(uint256 optionId) external {
         Option storage option = options[optionId];
         require(msg.sender == option.seller, "Only the seller can call this function");
-        require(option.buyer != address(0), "Option already bought");
+        require(option.buyer == address(0), "Option already bought");
         require(option.expiry > block.timestamp, "Option has expired");
 
         // Transfer the strike price in USDC from contract to the buyer
-        bool usdcTransferSuccess = IERC20(USDC_ADDRESS).transfer(option.seller, option.strikePrice);
-        if (!usdcTransferSuccess) {
-            revert OptionManager_USDCTransferFailedAtExpiry();
-        }
-
+        // Against Re-Entry Before Deletion !! LOGIC
         emit OptionDeleted(optionId);
         delete options[optionId];
+        IERC20(USDC_ADDRESS).safeTransfer(option.seller, option.strikePrice); 
     }
 
     /**
@@ -216,7 +209,6 @@ contract OptionManager {
     function buyOption(uint256 optionId) external {
         Option storage option = options[optionId];
         require(option.buyer == address(0), "Option already bought");
-        require(option.fundTransferedToTheContract, "Option must be funded");
         require(option.expiry > block.timestamp, "Option has expired");
         
         uint256 allowance = IERC20(USDC_ADDRESS).allowance(msg.sender, address(this));
@@ -229,10 +221,7 @@ contract OptionManager {
             revert OptionManager__InsufficientBalanceUSDCBuyerPut();
         }
 
-        bool transferSuccess = IERC20(USDC_ADDRESS).transferFrom(msg.sender, option.seller, option.premium);
-        if (!transferSuccess) {
-            revert OptionManager__BuyingPremiumTransferFailed();
-        }
+        IERC20(USDC_ADDRESS).safeTransferFrom(msg.sender, option.seller, option.premium);
 
         option.buyer = msg.sender;
         emit OptionBought(optionId, msg.sender);
@@ -243,21 +232,20 @@ contract OptionManager {
      * This must be done before the expiry date.
      * @param optionId The ID of the option.
      */
-    function sendAssetToContract(uint256 optionId) external {
+    function sendAssetToContract(uint256 optionId) external payable {
         Option storage option = options[optionId];
         require(msg.sender == option.buyer, "Only the buyer can call this function");
         require(!option.assetTransferedToTheContract, "Asset amount already stored");
         require(option.expiry > block.timestamp, "Option has expired");
 
-        uint256 allowance = IERC20(option.asset).allowance(msg.sender, address(this));
-        if (allowance < option.assetAmount) {
-            revert OptionManager__InsufficientAllowanceAssetBuyerPut();
-        }
-
-        bool assetTransferSuccess = IERC20(option.asset).transferFrom(msg.sender, address(this), option.assetAmount);
-        if (!assetTransferSuccess) {
-            revert OptionManager__TransferAssetFailed();
-        }
+        if (option.asset == ETH_ADDRESS) {
+            require(msg.value == option.assetAmount, "Incorrect ETH amount sent");
+        } else {
+            uint256 allowance = IERC20(option.asset).allowance(msg.sender, address(this));
+            if (allowance < option.assetAmount) {
+                revert OptionManager__InsufficientAllowanceAssetBuyerPut();
+            }
+            IERC20(option.asset).safeTransferFrom(msg.sender, address(this), option.assetAmount);}
         
         option.assetTransferedToTheContract = true;
         emit AssetSentToTheContract(optionId, msg.sender);
@@ -274,10 +262,11 @@ contract OptionManager {
         require(option.assetTransferedToTheContract, "No asset amount to reclaim");
         require(option.expiry > block.timestamp, "Option has expired");
 
-        bool assetTransferSuccess = IERC20(option.asset).transferFrom(msg.sender, address(this), option.assetAmount);
-        if (!assetTransferSuccess) {
-            revert OptionManager__TransferAssetFailed();
-        }
+        if (option.asset == ETH_ADDRESS) {
+                (bool success, ) = payable(msg.sender).call{value: option.assetAmount}("");
+                require(success, "ETH transfer failed");
+        } else {
+            IERC20(option.asset).safeTransfer(msg.sender, option.assetAmount);}
         
         option.assetTransferedToTheContract = false;
         emit AssetReclaimFromTheContract(optionId, msg.sender);

@@ -27,14 +27,14 @@ contract HelperConfig is Script {
 
 	function getSepoliaEthConfig() public pure returns(NetworkConfig memory) {
 		NetworkConfig memory sepoliaNetworkConfig = NetworkConfig({
-			networkName: "Sepolia",
+			networkName: "Sepolia"
 		});
 		return sepoliaNetworkConfig;
 	}
 
 	function getOrCreateAnvilEthConfig() public pure returns(NetworkConfig memory) {
 		NetworkConfig memory anvilNetworkConfig = NetworkConfig({
-			networkName: "Anvil",
+			networkName: "Anvil"
 		});
 		return anvilNetworkConfig;
 	}
