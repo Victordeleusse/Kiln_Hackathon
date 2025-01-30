@@ -9,8 +9,9 @@ contract DeployFactory is Script {
         vm.startBroadcast();
 
         address exchangeToken = 0xf08A50178dfcDe18524640EA6618a1f965821715;
+        address linkToken = 0x779877A7B0D9E8603169DdbD7836e478b4624789;
 
-        OptionManager optionManager = new OptionManager(exchangeToken);
+        OptionManager optionManager = new OptionManager(exchangeToken, linkToken);
 
         console.log("OptionManager deployed at:", address(optionManager));
         

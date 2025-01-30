@@ -7,7 +7,10 @@ import {MockERC20} from "./mockERC20.sol";
 
 contract OptionManagerExerciseTest is Test {
     OptionManager public optionManager;
+
     IERC20 public exchangeToken;
+    IERC20 public linkToken;
+
     address public seller = address(0x123);
     address public buyer = address(0x456);
     address public asset;
@@ -17,11 +20,12 @@ contract OptionManagerExerciseTest is Test {
     uint256 public expiration;
 
     function setUp() public {
-        exchangeToken = IERC20(address(new MockERC20()));
-        asset = address(new MockERC20());
+        exchangeToken = IERC20(address(new MockERC20("DD", "DD", 18))); // Déploiement d'un mock ERC20
+        linkToken = IERC20(address(new MockERC20("CC", "CC", 18))); // Déploiement d'un mock ERC20
+        optionManager = new OptionManager(address(exchangeToken), address(linkToken));
+        asset = address(new MockERC20("AA", "AA", 18));
         expiration = block.timestamp + 1 days;
 
-        optionManager = new OptionManager(address(exchangeToken));
         deal(address(exchangeToken), seller, strikePrice);
         deal(address(exchangeToken), buyer, premium);
 
