@@ -205,10 +205,12 @@ contract OptionManager is AutomationCompatibleInterface {
         require(option.expiry > block.timestamp, "Option has expired");
 
         // Transfer the strike price in USDC from contract to the buyer
-        // Against Re-Entry Before Deletion !! LOGIC
+        // Against Re entrency attack
+        uint256 strikePrice = option.strikePrice;
+        address seller = option.seller;
         emit OptionDeleted(optionId);
         delete options[optionId];
-        IERC20(usdcAddress).safeTransfer(option.seller, option.strikePrice); 
+        IERC20(usdcAddress).safeTransfer(seller, strikePrice);
     }
 
     /**
@@ -279,5 +281,13 @@ contract OptionManager is AutomationCompatibleInterface {
         
         option.assetTransferedToTheContract = false;
         emit AssetReclaimFromTheContract(optionId, msg.sender);
+    }
+
+    fallback() external payable {
+        revert("Unknown function call");
+    }
+
+    receive() external payable {
+        revert("Direct ETH transfers not allowed");
     }
 }
