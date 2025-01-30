@@ -49,7 +49,7 @@ contract OptionManager is AutomationCompatibleInterface {
     mapping(uint256 => Option) public options;
     
     /* Constants */
-    address private constant USDC_ADDRESS = 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238;
+    address public usdcAddress;
     address private constant ETH_ADDRESS = address(0);
 
 
@@ -71,6 +71,15 @@ contract OptionManager is AutomationCompatibleInterface {
     event AssetReclaimFromTheContract(uint256 optionId, address indexed buyer);
 
     /**
+     * @dev Constructor to set the USDC address dynamically at deployment.
+     * @param _usdcAddress The address of the USDC token.
+     */
+    constructor(address _usdcAddress) {
+        require(_usdcAddress != address(0), "USDC address cannot be zero");
+        usdcAddress = _usdcAddress;
+    }
+
+    /**
      * @dev Chainlink Keepers function that checks if any option has expired.
      */
     function checkUpkeep(bytes calldata) external override returns (bool upkeepNeeded, bytes memory performData) {
@@ -86,7 +95,7 @@ contract OptionManager is AutomationCompatibleInterface {
                 }
                 else {
                     // Give back the money to the seller if put option buyer has not transfered the asset at expiry
-                    IERC20(USDC_ADDRESS).safeTransfer(option.seller, option.strikePrice);
+                    IERC20(usdcAddress).safeTransfer(option.seller, option.strikePrice);
                     emit OptionDeleted(i);
                     delete options[i];
                 }
@@ -130,7 +139,7 @@ contract OptionManager is AutomationCompatibleInterface {
             IERC20(option.asset).safeTransfer(option.seller, option.assetAmount);}
 
         // Transfer the strike price from contract to the buyer
-        IERC20(USDC_ADDRESS).safeTransfer(option.buyer, option.strikePrice);
+        IERC20(usdcAddress).safeTransfer(option.buyer, option.strikePrice);
         
         // Delete the option from storage
         emit OptionDeleted(optionId);
@@ -154,18 +163,18 @@ contract OptionManager is AutomationCompatibleInterface {
     ) external {
         require(expiry > block.timestamp, "Expiry must be in the future");
 
-        uint256 allowance = IERC20(USDC_ADDRESS).allowance(msg.sender, address(this));
+        uint256 allowance = IERC20(usdcAddress).allowance(msg.sender, address(this));
         if (allowance < strikePrice) {
             revert OptionManager__InsufficientAllowanceSellerPut();
         }
 
-        uint256 balance = IERC20(USDC_ADDRESS).balanceOf(msg.sender);
+        uint256 balance = IERC20(usdcAddress).balanceOf(msg.sender);
         if (balance < strikePrice) {
             revert OptionManager__InsufficientBalanceSellerPut();
         }
 
         // Transfer USDC strike price to the contract safely
-        IERC20(USDC_ADDRESS).safeTransferFrom(msg.sender, address(this), strikePrice);
+        IERC20(usdcAddress).safeTransferFrom(msg.sender, address(this), strikePrice);
 
 
         options[optionCount] = Option({
@@ -199,7 +208,7 @@ contract OptionManager is AutomationCompatibleInterface {
         // Against Re-Entry Before Deletion !! LOGIC
         emit OptionDeleted(optionId);
         delete options[optionId];
-        IERC20(USDC_ADDRESS).safeTransfer(option.seller, option.strikePrice); 
+        IERC20(usdcAddress).safeTransfer(option.seller, option.strikePrice); 
     }
 
     /**
@@ -211,17 +220,17 @@ contract OptionManager is AutomationCompatibleInterface {
         require(option.buyer == address(0), "Option already bought");
         require(option.expiry > block.timestamp, "Option has expired");
         
-        uint256 allowance = IERC20(USDC_ADDRESS).allowance(msg.sender, address(this));
+        uint256 allowance = IERC20(usdcAddress).allowance(msg.sender, address(this));
         if (allowance < option.premium) {
             revert OptionManager__InsufficientAllowanceUSDCBuyerPut();
         }
 
-        uint256 balance = IERC20(USDC_ADDRESS).balanceOf(msg.sender);
+        uint256 balance = IERC20(usdcAddress).balanceOf(msg.sender);
         if (balance < option.premium) {
             revert OptionManager__InsufficientBalanceUSDCBuyerPut();
         }
 
-        IERC20(USDC_ADDRESS).safeTransferFrom(msg.sender, option.seller, option.premium);
+        IERC20(usdcAddress).safeTransferFrom(msg.sender, option.seller, option.premium);
 
         option.buyer = msg.sender;
         emit OptionBought(optionId, msg.sender);

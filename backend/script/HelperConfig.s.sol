@@ -11,6 +11,9 @@ contract HelperConfig is Script {
 
 	struct NetworkConfig {
 		string networkName;
+		address usdc_address;
+		address account;
+		address optionManagerContractAddress;
 	}
 
 	constructor () {
@@ -27,14 +30,20 @@ contract HelperConfig is Script {
 
 	function getSepoliaEthConfig() public pure returns(NetworkConfig memory) {
 		NetworkConfig memory sepoliaNetworkConfig = NetworkConfig({
-			networkName: "Sepolia"
+			networkName: "Sepolia",
+			usdc_address: 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238,
+			account: 0x4d7233Cab735078318ac948b1400fBe660048830,
+			optionManagerContractAddress: 0x0000000000000000000000000000000000000000
 		});
 		return sepoliaNetworkConfig;
 	}
 
 	function getOrCreateAnvilEthConfig() public pure returns(NetworkConfig memory) {
 		NetworkConfig memory anvilNetworkConfig = NetworkConfig({
-			networkName: "Anvil"
+			networkName: "Anvil",
+			usdc_address: 0x0000000000000000000000000000000000000000,
+			account: 0x4d7233Cab735078318ac948b1400fBe660048830,
+			optionManagerContractAddress: 0x0000000000000000000000000000000000000000
 		});
 		return anvilNetworkConfig;
 	}
