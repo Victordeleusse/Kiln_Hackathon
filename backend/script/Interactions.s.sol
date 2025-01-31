@@ -13,8 +13,8 @@ contract BuyPut is Script {
 	error BuyPut_invalidChainName();
 
 	/* State Variables */
-	address public SELLER = 0xD2C2011d8c700094712C43435d16E3A9703e7F96;
-	address public BUYER = 0x4d7233Cab735078318ac948b1400fBe660048830;
+	address public SELLER = 0x4d7233Cab735078318ac948b1400fBe660048830;
+	address public BUYER = 0xD2C2011d8c700094712C43435d16E3A9703e7F96;
     
 	OptionManager private optionManager;
 	IERC20 private usdc;
@@ -51,10 +51,10 @@ contract BuyPut is Script {
             address usdcAddress = networkconfig.usdc_address;
             usdc = IERC20(usdcAddress);
 			fight_token = IERC20(FIGHT_TOKEN_ADDRESS);
-            console.log("INIT Seller USDC balance:", usdc.balanceOf(SELLER));
-            console.log("INIT Buyer USDC balance:", usdc.balanceOf(BUYER));
-            console.log("INIT Contract USDC balance:", usdc.balanceOf(optionManagerContractAddress));
-            console.log("INIT Buyer FightToken balance:", fight_token.balanceOf(BUYER));
+            // console.log("INIT Seller USDC balance:", usdc.balanceOf(SELLER));
+            // console.log("INIT Buyer USDC balance:", usdc.balanceOf(BUYER));
+            // console.log("INIT Contract USDC balance:", usdc.balanceOf(optionManagerContractAddress));
+            // console.log("INIT Buyer FightToken balance:", fight_token.balanceOf(BUYER));
 			
 			// vm.startBroadcast(SELLER);
             // usdc.approve(optionManagerContractAddress, STRIKE_PRICE);
@@ -64,22 +64,22 @@ contract BuyPut is Script {
             // console.log("Seller USDC balance:", usdc.balanceOf(SELLER));
             // console.log("Contract USDC balance:", usdc.balanceOf(optionManagerContractAddress));
 
-			// vm.startBroadcast(BUYER);
-            // usdc.approve(optionManagerContractAddress, PREMIUM);
-			// optionManager.buyOption(2);
-			// vm.stopBroadcast();
+			vm.startBroadcast(BUYER);
+            usdc.approve(optionManagerContractAddress, PREMIUM);
+			optionManager.buyOption(1);
+			vm.stopBroadcast();
 
-			// console.log("Seller USDC balance:", usdc.balanceOf(SELLER));
-            // console.log("Buyer USDC balance:", usdc.balanceOf(BUYER));
+			console.log("Seller USDC balance:", usdc.balanceOf(SELLER));
+            console.log("Buyer USDC balance:", usdc.balanceOf(BUYER));
 
 			// vm.startBroadcast(BUYER);
             // fight_token.approve(optionManagerContractAddress, ASSET_AMOUNT);
 			// optionManager.sendAssetToContract(2);
 			// vm.stopBroadcast();
 
-			console.log("Buyer FightToken balance:", fight_token.balanceOf(BUYER));
-			console.log("Seller FightToken balance:", fight_token.balanceOf(SELLER));
-			console.log("Contract FightToken balance:", fight_token.balanceOf(optionManagerContractAddress));
+			// console.log("Buyer FightToken balance:", fight_token.balanceOf(BUYER));
+			// console.log("Seller FightToken balance:", fight_token.balanceOf(SELLER));
+			// console.log("Contract FightToken balance:", fight_token.balanceOf(optionManagerContractAddress));
 		
 		}
 		else if (block.chainid == 31337) {
