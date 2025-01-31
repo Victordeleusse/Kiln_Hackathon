@@ -6,5 +6,7 @@ remappings = [
 			"@openzeppelin=lib/openzeppelin-contracts",
 			"@chainlink/contracts/=lib/chainlink-brownie-contracts/contracts/",
 			]
+[etherscan]
+sepolia = { key = "VHJW3W3IGA73UDU497W7K3KWERPF65SQB1" }
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

@@ -23,12 +23,12 @@ contract BuyPut is Script {
 	address private constant FIGHT_TOKEN_ADDRESS = 0x6e6aD3E15a255A1fAfbF19C2EC2426147071CA0C; //FightToken ERC20
 	uint256 public constant ASSET_AMOUNT = 1;
 
-	uint256 public constant STRIKE_PRICE = 1e17; //0.1 USDC
-	uint256 public constant PREMIUM = 1e16; //0.01 USDC
+	uint256 public constant STRIKE_PRICE = 1e5; //0.1 USDC
+	uint256 public constant PREMIUM = 1e4; //0.01 USDC
 	uint256 public immutable EXPIRY;
 
-    uint256 public constant SELLER_STARTING_BALANCE = 20e18;
-    uint256 public constant BUYER_STARTING_BALANCE = 20e18;
+    // uint256 public constant SELLER_STARTING_BALANCE = 20e18;
+    // uint256 public constant BUYER_STARTING_BALANCE = 20e18;
 
 	constructor() {
 		EXPIRY = block.timestamp + 1 days;
@@ -56,23 +56,28 @@ contract BuyPut is Script {
             console.log("INIT Contract USDC balance:", usdc.balanceOf(optionManagerContractAddress));
             console.log("INIT Buyer FightToken balance:", fight_token.balanceOf(BUYER));
 			
-			vm.startBroadcast(SELLER);
-            usdc.approve(optionManagerContractAddress, STRIKE_PRICE);
-			optionManager.createOptionPut(STRIKE_PRICE, PREMIUM, EXPIRY, FIGHT_TOKEN_ADDRESS, ASSET_AMOUNT);
-			vm.stopBroadcast();
-
-            console.log("INIT Seller USDC balance:", usdc.balanceOf(SELLER));
-            console.log("INIT Contract USDC balance:", usdc.balanceOf(optionManagerContractAddress));
-
-            // console.log("Buyer USDC balance:", usdc.balanceOf(BUYER1));
-            // console.log("Contract USDC balance:", usdc.balanceOf(addressFightToken));
-            // console.log("Buyer FightToken balance:", alreadyDeployedFightToken.balanceOf(BUYER1));
-
-            // vm.startBroadcast(networkconfig.account);
-			// alreadyDeployedFightToken.withdrawFundToTheFighter(usdcAddress);
+			// vm.startBroadcast(SELLER);
+            // usdc.approve(optionManagerContractAddress, STRIKE_PRICE);
+			// optionManager.createOptionPut(STRIKE_PRICE, PREMIUM, EXPIRY, FIGHT_TOKEN_ADDRESS, ASSET_AMOUNT);
 			// vm.stopBroadcast();
 
-            // console.log("Fighter USDC balance:", usdc.balanceOf(FIGHTER2));
+            console.log("Seller USDC balance:", usdc.balanceOf(SELLER));
+            console.log("Contract USDC balance:", usdc.balanceOf(optionManagerContractAddress));
+
+			// vm.startBroadcast(BUYER);
+            // usdc.approve(optionManagerContractAddress, PREMIUM);
+			// optionManager.buyOption(0);
+			// vm.stopBroadcast();
+
+			console.log("Seller USDC balance:", usdc.balanceOf(SELLER));
+            console.log("Buyer USDC balance:", usdc.balanceOf(BUYER));
+
+			vm.startBroadcast(BUYER);
+            fight_token.approve(optionManagerContractAddress, ASSET_AMOUNT);
+			optionManager.sendAssetToContract(0);
+			vm.stopBroadcast();
+		
+			console.log("fight_token contract balance:", fight_token.balanceOf(optionManagerContractAddress));
 		}
 		else if (block.chainid == 31337) {
 			console.log("Working on :", networkconfig.networkName);
