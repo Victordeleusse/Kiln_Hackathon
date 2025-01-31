@@ -31,7 +31,7 @@ contract BuyPut is Script {
     // uint256 public constant BUYER_STARTING_BALANCE = 20e18;
 
 	constructor() {
-		EXPIRY = block.timestamp + 1 days;
+		EXPIRY = block.timestamp + 5*60;
 	}
 
 	function run() external {
@@ -61,23 +61,26 @@ contract BuyPut is Script {
 			// optionManager.createOptionPut(STRIKE_PRICE, PREMIUM, EXPIRY, FIGHT_TOKEN_ADDRESS, ASSET_AMOUNT);
 			// vm.stopBroadcast();
 
-            console.log("Seller USDC balance:", usdc.balanceOf(SELLER));
-            console.log("Contract USDC balance:", usdc.balanceOf(optionManagerContractAddress));
+            // console.log("Seller USDC balance:", usdc.balanceOf(SELLER));
+            // console.log("Contract USDC balance:", usdc.balanceOf(optionManagerContractAddress));
 
 			// vm.startBroadcast(BUYER);
             // usdc.approve(optionManagerContractAddress, PREMIUM);
-			// optionManager.buyOption(0);
+			// optionManager.buyOption(2);
 			// vm.stopBroadcast();
 
-			console.log("Seller USDC balance:", usdc.balanceOf(SELLER));
-            console.log("Buyer USDC balance:", usdc.balanceOf(BUYER));
+			// console.log("Seller USDC balance:", usdc.balanceOf(SELLER));
+            // console.log("Buyer USDC balance:", usdc.balanceOf(BUYER));
 
-			vm.startBroadcast(BUYER);
-            fight_token.approve(optionManagerContractAddress, ASSET_AMOUNT);
-			optionManager.sendAssetToContract(0);
-			vm.stopBroadcast();
+			// vm.startBroadcast(BUYER);
+            // fight_token.approve(optionManagerContractAddress, ASSET_AMOUNT);
+			// optionManager.sendAssetToContract(2);
+			// vm.stopBroadcast();
+
+			console.log("Buyer FightToken balance:", fight_token.balanceOf(BUYER));
+			console.log("Seller FightToken balance:", fight_token.balanceOf(SELLER));
+			console.log("Contract FightToken balance:", fight_token.balanceOf(optionManagerContractAddress));
 		
-			console.log("fight_token contract balance:", fight_token.balanceOf(optionManagerContractAddress));
 		}
 		else if (block.chainid == 31337) {
 			console.log("Working on :", networkconfig.networkName);
