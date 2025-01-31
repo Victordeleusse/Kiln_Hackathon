@@ -1,3 +1,4 @@
+"use client"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { Web3Provider } from "@/components/providers/web3Provider";
 

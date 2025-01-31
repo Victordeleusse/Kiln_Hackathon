@@ -1,10 +1,37 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export default function Home() {
   return (
-    <section>
-      <h1>Home</h1>
-      <ConnectButton />
+    <section className="container min-h-screen ">
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
+      <h1 className="text-4xl font-bold text-center mt-8">Hello from Marketplace</h1>
     </section>
   );
 }
