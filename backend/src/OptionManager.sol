@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
 
@@ -189,7 +189,7 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
             expiry: expiry,
 			asset: asset,
         	assetAmount: assetAmount,
-            assetTransferedToTheContract: false,
+            assetTransferedToTheContract: false
         });
 
         emit OptionCreated(optionCount, OptionType.PUT, msg.sender, strikePrice, premium, asset, assetAmount, expiry);
