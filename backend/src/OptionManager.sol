@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
 
@@ -9,7 +10,7 @@ import "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatible
  * @title OptionManager
  */
 
-contract OptionManager is AutomationCompatibleInterface {
+contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
 
     using SafeERC20 for IERC20;
 
@@ -41,7 +42,6 @@ contract OptionManager is AutomationCompatibleInterface {
 		uint256 assetAmount;
         uint256 expiry;
         bool    assetTransferedToTheContract;
-        bool    fundTransferedToTheContract;
     }
 
 	/* State Variables */
@@ -128,6 +128,7 @@ contract OptionManager is AutomationCompatibleInterface {
      */
     function settleExpiredOption(uint256 optionId) internal {
         Option storage option = options[optionId];
+        require(option.seller != address(0), "Option does not exist or has expired");
         // Ensure no error from chainlink automation trigger 
         require(block.timestamp >= option.expiry, "Option has not expired yet");
 
@@ -142,6 +143,7 @@ contract OptionManager is AutomationCompatibleInterface {
         IERC20(usdcAddress).safeTransfer(option.buyer, option.strikePrice);
         
         // Delete the option from storage
+        emit OptionExercised(optionId, option.buyer);
         emit OptionDeleted(optionId);
         delete options[optionId];
     }
@@ -160,22 +162,23 @@ contract OptionManager is AutomationCompatibleInterface {
         uint256 expiry,
 		address asset,
     	uint256 assetAmount
-    ) external {
+    ) external nonReentrant {
         require(expiry > block.timestamp, "Expiry must be in the future");
+        require(assetAmount > 0 && premium > 0 && strikePrice > 0, "Amount must be greater than 0");
+        require(asset != address(0), "Asset address must be valid");
 
-        uint256 allowance = IERC20(usdcAddress).allowance(msg.sender, address(this));
-        if (allowance < strikePrice) {
-            revert OptionManager__InsufficientAllowanceSellerPut();
-        }
+        // uint256 allowance = IERC20(usdcAddress).allowance(msg.sender, address(this));
+        // if (allowance < strikePrice) {
+        //     revert OptionManager__InsufficientAllowanceSellerPut();
+        // }
 
-        uint256 balance = IERC20(usdcAddress).balanceOf(msg.sender);
-        if (balance < strikePrice) {
-            revert OptionManager__InsufficientBalanceSellerPut();
-        }
+        // uint256 balance = IERC20(usdcAddress).balanceOf(msg.sender);
+        // if (balance < strikePrice) {
+        //     revert OptionManager__InsufficientBalanceSellerPut();
+        // }
 
         // Transfer USDC strike price to the contract safely
         IERC20(usdcAddress).safeTransferFrom(msg.sender, address(this), strikePrice);
-
 
         options[optionCount] = Option({
             optionType: OptionType.PUT,
@@ -187,7 +190,6 @@ contract OptionManager is AutomationCompatibleInterface {
 			asset: asset,
         	assetAmount: assetAmount,
             assetTransferedToTheContract: false,
-            fundTransferedToTheContract: true
         });
 
         emit OptionCreated(optionCount, OptionType.PUT, msg.sender, strikePrice, premium, asset, assetAmount, expiry);
@@ -200,6 +202,7 @@ contract OptionManager is AutomationCompatibleInterface {
      */
     function deleteOptionPut(uint256 optionId) external {
         Option storage option = options[optionId];
+        require(option.seller != address(0), "Option does not exist or has expired");
         require(msg.sender == option.seller, "Only the seller can call this function");
         require(option.buyer == address(0), "Option already bought");
         require(option.expiry > block.timestamp, "Option has expired");
@@ -219,6 +222,7 @@ contract OptionManager is AutomationCompatibleInterface {
      */
     function buyOption(uint256 optionId) external {
         Option storage option = options[optionId];
+        require(option.seller != address(0), "Option does not exist or has expired");
         require(option.buyer == address(0), "Option already bought");
         require(option.expiry > block.timestamp, "Option has expired");
         
@@ -245,6 +249,7 @@ contract OptionManager is AutomationCompatibleInterface {
      */
     function sendAssetToContract(uint256 optionId) external payable {
         Option storage option = options[optionId];
+        require(option.seller != address(0), "Option does not exist or has expired");
         require(msg.sender == option.buyer, "Only the buyer can call this function");
         require(!option.assetTransferedToTheContract, "Asset amount already stored");
         require(option.expiry > block.timestamp, "Option has expired");
@@ -269,6 +274,7 @@ contract OptionManager is AutomationCompatibleInterface {
      */
     function reclaimAssetFromContract(uint256 optionId) external {
         Option storage option = options[optionId];
+        require(option.seller != address(0), "Option does not exist or has expired");
         require(msg.sender == option.buyer, "Only the buyer can call this function");
         require(option.assetTransferedToTheContract, "No asset amount to reclaim");
         require(option.expiry > block.timestamp, "Option has expired");
