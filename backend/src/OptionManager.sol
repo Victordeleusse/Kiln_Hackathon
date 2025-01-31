@@ -167,17 +167,6 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
         require(assetAmount > 0 && premium > 0 && strikePrice > 0, "Amount must be greater than 0");
         require(asset != address(0), "Asset address must be valid");
 
-        // uint256 allowance = IERC20(usdcAddress).allowance(msg.sender, address(this));
-        // if (allowance < strikePrice) {
-        //     revert OptionManager__InsufficientAllowanceSellerPut();
-        // }
-
-        // uint256 balance = IERC20(usdcAddress).balanceOf(msg.sender);
-        // if (balance < strikePrice) {
-        //     revert OptionManager__InsufficientBalanceSellerPut();
-        // }
-
-        // Transfer USDC strike price to the contract safely
         IERC20(usdcAddress).safeTransferFrom(msg.sender, address(this), strikePrice);
 
         options[optionCount] = Option({
@@ -189,7 +178,7 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
             expiry: expiry,
 			asset: asset,
         	assetAmount: assetAmount,
-            assetTransferedToTheContract: false,
+            assetTransferedToTheContract: false
         });
 
         emit OptionCreated(optionCount, OptionType.PUT, msg.sender, strikePrice, premium, asset, assetAmount, expiry);
@@ -207,8 +196,6 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
         require(option.buyer == address(0), "Option already bought");
         require(option.expiry > block.timestamp, "Option has expired");
 
-        // Transfer the strike price in USDC from contract to the buyer
-        // Against Re entrency attack
         uint256 strikePrice = option.strikePrice;
         address seller = option.seller;
         emit OptionDeleted(optionId);
