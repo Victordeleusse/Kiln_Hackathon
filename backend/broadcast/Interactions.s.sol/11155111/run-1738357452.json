@@ -1,0 +1,58 @@
+{
+  "transactions": [
+    {
+      "hash": null,
+      "transactionType": "CALL",
+      "contractName": null,
+      "contractAddress": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
+      "function": "approve(address,uint256)",
+      "arguments": [
+        "0xdD0CeF363CD9873a793b611812cfc712b9c70DB8",
+        "100000"
+      ],
+      "transaction": {
+        "from": "0xd2c2011d8c700094712c43435d16e3a9703e7f96",
+        "to": "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238",
+        "gas": "0x12b1b",
+        "value": "0x0",
+        "input": "0x095ea7b3000000000000000000000000dd0cef363cd9873a793b611812cfc712b9c70db800000000000000000000000000000000000000000000000000000000000186a0",
+        "nonce": "0x2",
+        "chainId": "0xaa36a7"
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    },
+    {
+      "hash": null,
+      "transactionType": "CALL",
+      "contractName": null,
+      "contractAddress": "0xdd0cef363cd9873a793b611812cfc712b9c70db8",
+      "function": "createOptionPut(uint256,uint256,uint256,address,uint256)",
+      "arguments": [
+        "100000",
+        "10000",
+        "1738357728",
+        "0x6e6aD3E15a255A1fAfbF19C2EC2426147071CA0C",
+        "1"
+      ],
+      "transaction": {
+        "from": "0xd2c2011d8c700094712c43435d16e3a9703e7f96",
+        "to": "0xdd0cef363cd9873a793b611812cfc712b9c70db8",
+        "gas": "0x4f9aa",
+        "value": "0x0",
+        "input": "0x3c630ccf00000000000000000000000000000000000000000000000000000000000186a0000000000000000000000000000000000000000000000000000000000000271000000000000000000000000000000000000000000000000000000000679d3be00000000000000000000000006e6ad3e15a255a1fafbf19c2ec2426147071ca0c0000000000000000000000000000000000000000000000000000000000000001",
+        "nonce": "0x3",
+        "chainId": "0xaa36a7"
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [],
+  "libraries": [],
+  "pending": [],
+  "returns": {},
+  "timestamp": 1738357452,
+  "chain": 11155111,
+  "commit": "63517b3"
+}
