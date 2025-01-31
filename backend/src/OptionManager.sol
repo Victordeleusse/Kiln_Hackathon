@@ -89,16 +89,8 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
         for (uint256 i = 0; i < optionCount; i++) {
             if (block.timestamp >= options[i].expiry) {
                 Option storage option = options[i];
-                if (option.assetTransferedToTheContract) {
-                    exercisedOptions[count] = i;
-                    count++;
-                }
-                else {
-                    // Give back the money to the seller if put option buyer has not transfered the asset at expiry
-                    IERC20(usdcAddress).safeTransfer(option.seller, option.strikePrice);
-                    emit OptionDeleted(i);
-                    delete options[i];
-                }
+                exercisedOptions[count] = i;
+                count++;
             }
         }
 
@@ -122,30 +114,28 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
         }
     }
 
-    /**
-     * @dev To set internal logic after a put option is exercised at expiry.
-     * @param optionId The ID of the option to settle.
-     */
     function settleExpiredOption(uint256 optionId) internal {
         Option storage option = options[optionId];
         require(option.seller != address(0), "Option does not exist or has expired");
-        // Ensure no error from chainlink automation trigger 
         require(block.timestamp >= option.expiry, "Option has not expired yet");
 
-        // Transfer the asset amount from contract to the seller
-        if (option.asset == ETH_ADDRESS) {
-            (bool success, ) = payable(option.seller).call{value: option.assetAmount}("");
-            require(success, "ETH transfer failed");
-        } else {
-            IERC20(option.asset).safeTransfer(option.seller, option.assetAmount);}
+        if (option.assetTransferedToTheContract == false) {
+            IERC20(usdcAddress).safeTransfer(option.seller, option.strikePrice);
+        }
+        else {
+            if (option.asset == ETH_ADDRESS) {
+                (bool success, ) = payable(option.seller).call{value: option.assetAmount}("");
+                require(success, "ETH transfer failed");
+            } 
+            else {
+                IERC20(option.asset).safeTransfer(option.seller, option.assetAmount);
+            }
+            IERC20(usdcAddress).safeTransfer(option.buyer, option.strikePrice);
+            emit OptionExercised(optionId, option.buyer);
+        }
 
-        // Transfer the strike price from contract to the buyer
-        IERC20(usdcAddress).safeTransfer(option.buyer, option.strikePrice);
-        
-        // Delete the option from storage
-        emit OptionExercised(optionId, option.buyer);
-        emit OptionDeleted(optionId);
         delete options[optionId];
+        emit OptionDeleted(optionId);
     }
 
     /**
@@ -194,38 +184,29 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
         require(option.seller != address(0), "Option does not exist or has expired");
         require(msg.sender == option.seller, "Only the seller can call this function");
         require(option.buyer == address(0), "Option already bought");
-        require(option.expiry > block.timestamp, "Option has expired");
 
         uint256 strikePrice = option.strikePrice;
         address seller = option.seller;
-        emit OptionDeleted(optionId);
         delete options[optionId];
+
         IERC20(usdcAddress).safeTransfer(seller, strikePrice);
+
+        emit OptionDeleted(optionId);
     }
 
     /**
      * @dev Allows a buyer to purchase a PUT option.
      * @param optionId The ID of the option to purchase.
      */
-    function buyOption(uint256 optionId) external {
+    function buyOption(uint256 optionId) external nonReentrant {
         Option storage option = options[optionId];
         require(option.seller != address(0), "Option does not exist or has expired");
         require(option.buyer == address(0), "Option already bought");
-        require(option.expiry > block.timestamp, "Option has expired");
-        
-        uint256 allowance = IERC20(usdcAddress).allowance(msg.sender, address(this));
-        if (allowance < option.premium) {
-            revert OptionManager__InsufficientAllowanceUSDCBuyerPut();
-        }
-
-        uint256 balance = IERC20(usdcAddress).balanceOf(msg.sender);
-        if (balance < option.premium) {
-            revert OptionManager__InsufficientBalanceUSDCBuyerPut();
-        }
 
         IERC20(usdcAddress).safeTransferFrom(msg.sender, option.seller, option.premium);
 
         option.buyer = msg.sender;
+
         emit OptionBought(optionId, msg.sender);
     }
 
@@ -239,15 +220,10 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
         require(option.seller != address(0), "Option does not exist or has expired");
         require(msg.sender == option.buyer, "Only the buyer can call this function");
         require(!option.assetTransferedToTheContract, "Asset amount already stored");
-        require(option.expiry > block.timestamp, "Option has expired");
 
         if (option.asset == ETH_ADDRESS) {
             require(msg.value == option.assetAmount, "Incorrect ETH amount sent");
         } else {
-            uint256 allowance = IERC20(option.asset).allowance(msg.sender, address(this));
-            if (allowance < option.assetAmount) {
-                revert OptionManager__InsufficientAllowanceAssetBuyerPut();
-            }
             IERC20(option.asset).safeTransferFrom(msg.sender, address(this), option.assetAmount);}
         
         option.assetTransferedToTheContract = true;
@@ -264,11 +240,10 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
         require(option.seller != address(0), "Option does not exist or has expired");
         require(msg.sender == option.buyer, "Only the buyer can call this function");
         require(option.assetTransferedToTheContract, "No asset amount to reclaim");
-        require(option.expiry > block.timestamp, "Option has expired");
 
         if (option.asset == ETH_ADDRESS) {
-                (bool success, ) = payable(msg.sender).call{value: option.assetAmount}("");
-                require(success, "ETH transfer failed");
+            (bool success, ) = payable(msg.sender).call{value: option.assetAmount}("");
+            require(success, "ETH transfer failed");
         } else {
             IERC20(option.asset).safeTransfer(msg.sender, option.assetAmount);}
         
