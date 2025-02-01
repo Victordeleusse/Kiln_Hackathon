@@ -14,7 +14,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWatchContractEvent } from "wagmi";
-import { config } from "@/components/providers/web3Provider";
+// import { config } from "@/components/providers/web3Provider";
 import { useCreatePutOption, pushCreatedPutOptionInDatabase } from '../../hooks/useCreatePutOption';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
@@ -59,6 +59,17 @@ export function PutForm() {
       });
   }});
 
+  // unWatch();
+
+  //usewatchcontractevent({
+  //  address: OPTION_MANAGER_ADDRESS,
+  //  abi: optionManagerABI,
+  //  eventName: "OptionCreated",
+  //  onLogs(logs) {
+  //    console.log('New logs!', logs)
+  //  },
+  //});
+  //
   useEffect(() => {
     if (isSuccess) {
       toast.success("Option successfully created!");
@@ -69,7 +80,7 @@ export function PutForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!isConnected || !address) {
       openConnectModal?.();
       return;
@@ -81,7 +92,7 @@ export function PutForm() {
     }
 
     const formData = new FormData(e.currentTarget);
-    
+
     try {
       const success = await createOption({
         strikePrice: formData.get('strikePrice') as string,
