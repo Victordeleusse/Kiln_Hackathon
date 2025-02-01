@@ -1,2 +1,0 @@
-
-//retrieve all ooptoin list

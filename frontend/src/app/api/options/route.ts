@@ -23,21 +23,13 @@ export async function POST(req: Request) {
         premium_price: parseFloat(data.premium_price),
         expiry: new Date(data.expiry),
         asset: data.asset,
+        amount: data.amount,
         seller_address: data.seller_address,
         asset_transfered: false
       }
     });
 
     console.log('Put option created on database:', putOption);
-    // const unwatch = publicClient.watchEvent({
-    //   address: OPTION_MANAGER_ADDRESS,
-    //   event: parseAbiItem('event OptionCreated(uint256,uint8,address,uint256,uint256,address,uint256,uint256)'),
-    //   onLogs: (logs) => {
-    //     // Update database with blockchain data if needed
-    //     console.log('Option created on blockchain:', logs);
-    //     unwatch();
-    //   }
-    // });
 
     return NextResponse.json({ 
       success: true, 
@@ -53,11 +45,38 @@ export async function POST(req: Request) {
   }
 }
 
-function parseAbiItem(abiString: string) {
-    try {
-        return parseAbi([abiString])[0];
-    } catch (error) {
-        console.error('Error parsing ABI item:', error);
-        return undefined;
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const sellerAddress = searchParams.get('seller');
+    const buyerAddress = searchParams.get('buyer');
+    
+    if (!sellerAddress && !buyerAddress) {
+      return NextResponse.json({
+        success: false,
+        error: 'Must provide either seller or buyer address'
+      }, { status: 400 });
     }
+
+    const options = await prisma.putOption.findMany({
+      where: {
+        ...(sellerAddress && { seller_address: sellerAddress }),
+        ...(buyerAddress === "null" ? { buyer_address: null } : buyerAddress ? { buyer_address: buyerAddress } : {})
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    return NextResponse.json({
+        success: true,
+        data: options
+    });
+    } catch (error) {
+        console.error('Error fetching put options:', error);
+        return NextResponse.json({
+        success: false,
+        error: 'Failed to fetch put options'
+    }, { status: 500 });
+  }
 }

@@ -15,7 +15,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWatchContractEvent } from "wagmi";
 // import { config } from "@/components/providers/web3Provider";
-import { useCreatePutOption, pushCreatedPutOptionInDatabase } from '../../hooks/useCreatePutOption';
+import { blockchainCreatePutOption, databaseCreatePutOption } from '../../hooks/useCreatePutOption';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { toast } from 'sonner';
@@ -30,8 +30,8 @@ export function PutForm() {
 
   const { address, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { createOption, isLoading, isSuccess, error } = useCreatePutOption();
-  const { pushPutOptionInDatabase } = pushCreatedPutOptionInDatabase();
+  const { createOption, isLoading, isSuccess, error } = blockchainCreatePutOption();
+  const { pushPutOptionInDatabase } = databaseCreatePutOption();
 
   
   useWatchContractEvent({
@@ -94,7 +94,7 @@ export function PutForm() {
     const formData = new FormData(e.currentTarget);
 
     try {
-      const success = await createOption({
+      const response = await createOption({
         strikePrice: formData.get('strikePrice') as string,
         premiumPrice: formData.get('premiumPrice') as string,
         expiry: date ?? new Date(),
@@ -222,16 +222,12 @@ export function PutForm() {
                   </div>
                 </Toggle>
               </div>
-              <Button type="submit" className="w-full text-base mt-4" disabled={isLoading || !isConnected}>
-                {isLoading ? 'Creating...' : 'Submit'}
-              </Button>
-              {isSuccess && (
-                <p className="text-green-600 mt-2 text-center">✅ Option successfully created!</p>
-              )}
+              <Button type="submit" className="w-full text-base mt-4" disabled={!isConnected}>Submit</Button>
             </form>
           </CardContent>
         </Card>
       </div>
-    </div >
+      {/* <CallHooks /> */}
+    </div>
   );
 }

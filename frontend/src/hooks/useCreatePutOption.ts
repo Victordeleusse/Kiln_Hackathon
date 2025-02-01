@@ -1,8 +1,10 @@
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import { optionManagerABI, erc20ABI, OPTION_MANAGER_ADDRESS, USDC_ADDRESS } from '../config/contract-config';
 import { watchContractEvent } from '@wagmi/core'
+import { useState } from 'react';
+import { toast } from 'sonner';
 
-export function useCreatePutOption() {
+export function blockchainCreatePutOption() {
   const { writeContract, data: hash, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
   const { address } = useAccount();
@@ -58,9 +60,12 @@ export function useCreatePutOption() {
   };
 }
 
-export function pushCreatedPutOptionInDatabase() {
+
+export function databaseCreatePutOption() {
 
   const { address } = useAccount();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   const pushPutOptionInDatabase = async ({
     id_blockchain,
@@ -78,7 +83,7 @@ export function pushCreatedPutOptionInDatabase() {
     amount: string
   }) => {
     try {
-      await fetch('/api/options', {
+      const response = await fetch('/api/options', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -91,14 +96,21 @@ export function pushCreatedPutOptionInDatabase() {
           seller_address: address,
         })
       });
-
-      return true;
+      if (!response.ok) {
+        throw new Error("Failed to create option.");
+      }
+      const result = await response.json();
+      console.log('Option created successfully.');
+      return result;
     } catch (err) {
+      setError(err as Error);
       console.error('Error creating option:', err);
-      return false;
+      return null;
+    } finally {
+      setIsLoading(false);
     }
   };
   return {
-    pushPutOptionInDatabase,
+    pushPutOptionInDatabase, isLoading, error
   };
 }
