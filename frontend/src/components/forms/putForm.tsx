@@ -103,7 +103,7 @@ export function PutForm() {
                   >
                     Spiko
                   </Link>
-                  {" "}staking solution ?
+                  {" "}fund solution ?
                 </Label>
               </div>
               <div
@@ -139,7 +139,9 @@ export function PutForm() {
                   </div>
                 </Toggle>
               </div>
-              <Button type="submit" className="w-full text-base mt-4">Submit</Button>
+              <Button type="submit" className="w-full text-base mt-4">
+                Create Put Option
+              </Button>
             </form>
           </CardContent>
         </Card>

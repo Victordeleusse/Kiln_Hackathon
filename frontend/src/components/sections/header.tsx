@@ -35,6 +35,12 @@ export function Header() {
 
         <nav className="hidden md:flex items-center space-x-8 text-lg">
           <Link
+            href="/staking-list"
+            className="text-lg font-semibold rounded-md px-2 py-1 transition-all duration-300  
+              hover:bg-slate-600"          >
+            Kiln Staking List
+          </Link>
+          <Link
             href="/"
             className="text-lg font-semibold rounded-md px-2 py-1 transition-all duration-300  
               hover:bg-slate-600"          >
