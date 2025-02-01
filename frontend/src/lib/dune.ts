@@ -3,9 +3,7 @@ import { DUNE_API_KEY } from "@/lib/constant";
 
 const dune = new DuneClient(DUNE_API_KEY);
 
-export async function getWalletList() {
+export async function getWalletList(): Promise<string[]> {
   const result = await dune.getLatestResult({ queryId: 4652328 });
-  const walletList = result.result?.rows.map(row => row.staker);
-  console.log(walletList);
-  return walletList;
+  return result.result?.rows.map(row => row.staker) || [];
 }
