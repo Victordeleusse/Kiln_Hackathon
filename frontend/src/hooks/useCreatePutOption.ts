@@ -78,11 +78,18 @@ export function databaseCreatePutOption() {
     id_blockchain: string,
     strikePrice: string,
     premiumPrice: string,
-    expiry: Date,
+    expiry: Date | null,
     asset: string,
     amount: string
   }) => {
     try {
+      if (!id_blockchain || !strikePrice || !premiumPrice || !expiry || !asset || !amount) {
+        console.error("Missing required fields:", {
+          id_blockchain, strikePrice, premiumPrice, expiry, asset, amount
+        });
+        throw new Error("One or more required fields are missing.");
+      }
+  
       const response = await fetch('/api/options', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

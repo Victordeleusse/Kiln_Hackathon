@@ -16,14 +16,16 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
 
+    console.log("DATA POST", data);
+
     const putOption = await prisma.PutOption.create({
       data: {
-        id_blockchain: parseFloat(data.id_blockchain), 
+        id_blockchain: Number(data.id_blockchain), 
         strike_price: parseFloat(data.strike_price),
         premium_price: parseFloat(data.premium_price),
         expiry: new Date(data.expiry),
         asset: data.asset,
-        amount: data.amount,
+        amount: parseFloat(data.amount),
         seller_address: data.seller_address,
         asset_transfered: false
       }
