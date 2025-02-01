@@ -87,8 +87,8 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
         uint256 count = 0;
 
         for (uint256 i = 0; i < optionCount; i++) {
-            if (block.timestamp >= options[i].expiry) {
-                Option storage option = options[i];
+            if (options[i].seller != address(0) && block.timestamp >= options[i].expiry) {
+                // Option storage option = options[i];
                 exercisedOptions[count] = i;
                 count++;
             }

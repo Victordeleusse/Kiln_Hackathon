@@ -33,7 +33,7 @@ contract HelperConfig is Script {
 			networkName: "Sepolia",
 			usdc_address: 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238,
 			account: 0x4d7233Cab735078318ac948b1400fBe660048830,
-			optionManagerContractAddress: 0xa27D85405FA73CD2FFCAE32A30E5c5cE35d5c56a
+			optionManagerContractAddress: 0x48f9219Cc45aD25c14aaBedf70d12b37041Bb9db
 		});
 		return sepoliaNetworkConfig;
 	}
@@ -43,7 +43,7 @@ contract HelperConfig is Script {
 			networkName: "Anvil",
 			usdc_address: 0x0000000000000000000000000000000000000000,
 			account: 0x4d7233Cab735078318ac948b1400fBe660048830,
-			optionManagerContractAddress: 0xa27D85405FA73CD2FFCAE32A30E5c5cE35d5c56a
+			optionManagerContractAddress: 0x48f9219Cc45aD25c14aaBedf70d12b37041Bb9db
 		});
 		return anvilNetworkConfig;
 	}

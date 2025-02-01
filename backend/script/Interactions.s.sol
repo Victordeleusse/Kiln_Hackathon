@@ -66,11 +66,13 @@ contract BuyPut is Script {
 
 			vm.startBroadcast(BUYER);
             usdc.approve(optionManagerContractAddress, PREMIUM);
-			optionManager.buyOption(1);
+			optionManager.buyOption(4);
+            usdc.approve(optionManagerContractAddress, PREMIUM);
+			optionManager.buyOption(5);
 			vm.stopBroadcast();
 
-			console.log("Seller USDC balance:", usdc.balanceOf(SELLER));
-            console.log("Buyer USDC balance:", usdc.balanceOf(BUYER));
+			// console.log("Seller USDC balance:", usdc.balanceOf(SELLER));
+            // console.log("Buyer USDC balance:", usdc.balanceOf(BUYER));
 
 			// vm.startBroadcast(BUYER);
             // fight_token.approve(optionManagerContractAddress, ASSET_AMOUNT);
