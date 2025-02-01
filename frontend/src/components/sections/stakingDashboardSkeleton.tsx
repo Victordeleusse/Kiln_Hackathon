@@ -1,46 +1,61 @@
-
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import { PutForm } from "@/components/forms/putForm";
-import { getEthOnchainStakes } from "@/actions/kiln";
-import { useQuery } from "@tanstack/react-query";
-import { StakingDashboardSkeleton } from "@/components/sections/stakingDashboardSkeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const balanceList = [
-  {
-    id: 1,
-    ethBalance: 100,
-    totalPrice: 1000,
-  },
-  {
-    id: 2,
-    ethBalance: 200,
-    totalPrice: 2000,
-  },
-  {
-    id: 3,
-    ethBalance: 300,
-    totalPrice: 3000,
-  },
-  {
-    id: 4,
-    ethBalance: 400,
-    totalPrice: 4000,
-  },
-  {
-    id: 5,
-    ethBalance: 500,
-    totalPrice: 5000,
-  },
-];
+export function StakingDashboardSkeleton() {
+  return (
+    <div className="container mx-auto px-4 py-16">
+      <Card className="w-full max-w-5xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-4xl font-bold text-center py-4">
+            <Skeleton className="h-12 w-64 mx-auto" />
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-lg py-6">
+                    <Skeleton className="h-8 w-24" />
+                  </TableHead>
+                  <TableHead className="text-lg py-6">
+                    <Skeleton className="h-8 w-32" />
+                  </TableHead>
+                  <TableHead className="text-right text-lg py-6">
+                    <Skeleton className="h-8 w-24 ml-auto" />
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[1, 2, 3, 4, 5].map((item) => (
+                  <TableRow key={item}>
+                    <TableCell className="text-lg py-6">
+                      <Skeleton className="h-8 w-32" />
+                    </TableCell>
+                    <TableCell className="text-lg py-6">
+                      <Skeleton className="h-8 w-40" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="h-10 w-40 ml-auto" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
+// Updated main component with skeleton
 export default function StakingDashboard() {
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
-
   const { isPending, data } = useQuery({
     queryKey: ['kiln'],
     queryFn: getEthOnchainStakes,
@@ -73,11 +88,11 @@ export default function StakingDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.map((item) => (
+                {balanceList.map((item) => (
                   <React.Fragment key={item.id}>
                     <TableRow>
                       <TableCell className="text-lg py-6">
-                        {item.balance.toLocaleString()} ETH
+                        {item.ethBalance.toLocaleString()} ETH
                       </TableCell>
                       <TableCell className="text-lg py-6">
                         ${item.totalPrice.toLocaleString()}
@@ -96,7 +111,7 @@ export default function StakingDashboard() {
                       </TableCell>
                     </TableRow>
                     {expandedRow === item.id && (
-                      <TableRow className="bg-muted/50" key={item.id}>
+                      <TableRow className="bg-muted/50">
                         <TableCell colSpan={3} className="py-6">
                           <PutForm address="0x0000000000000000" />
                         </TableCell>
@@ -112,4 +127,3 @@ export default function StakingDashboard() {
     </div>
   );
 }
-

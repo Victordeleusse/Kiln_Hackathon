@@ -10,10 +10,11 @@ export async function getEthOnchainStakes() {
   const walletsParam = walletList.join(',');
 
   try {
-    const eth = await fetch('https://api.diadata.org/v1/assetQuotation/Ethereum/0x0000000000000000000000000000000000000000')
-    const ethData = await eth.json();
-    const ethPrice = Number(ethData.Price.toFixed(2));
-
+    //const eth = await fetch('https://api.diadata.org/v1/assetQuotation/Ethereum/0x0000000000000000000000000000000000000000')
+    //const ethData = await eth.json();
+    //const ethPrice = Number(ethData.Price.toFixed(2));
+    //
+    const ethPrice = 3249;
     const response = await fetch(`${baseUrl}?wallets=${walletsParam}`, {
       method: 'GET',
       headers: {
@@ -30,7 +31,9 @@ export async function getEthOnchainStakes() {
     const formattedData = data.data.map((item) => {
       return {
         owner: item.owner,
-        balance: (Number(item.balance) / 1e18) * ethPrice,
+        contract: "0x0000000000000000000000000000000000000000",
+        balance: (Number(item.balance) / 1e18),
+        totalPrice: (Number(item.balance) / 1e18) * ethPrice
       }
     })
     return formattedData;
