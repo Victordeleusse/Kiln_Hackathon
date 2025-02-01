@@ -1,12 +1,41 @@
+"use client";
 import { PutForm } from "@/components/forms/putForm";
-import { getEthOnchainStakes } from "@/actions/kiln";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PutOptionList } from "@/components/sections/putOptionList";
 
-export default async function Home() {
-  const result = await getEthOnchainStakes();
-  console.log(result);
+export default function Home() {
   return (
-    <section className="container min-h-screen ">
+    <section className="container">
       <PutForm />
+      <Card className="w-full container mx-auto shadow-lg mb-10 mt-10">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">Put Options Dashboard</CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <Tabs defaultValue="allOptions" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 h-fit">
+              <TabsTrigger value="allOptions" className="text-lg py-1">
+                Available & Bought Options
+              </TabsTrigger>
+              <TabsTrigger value="myOptions" className="text-lg py-1">
+                My Created & Bought Options
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="allOptions">
+              <PutOptionList />
+            </TabsContent>
+
+            <TabsContent value="myOptions">
+              hello world
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
     </section>
   );
 }
+

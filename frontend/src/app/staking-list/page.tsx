@@ -10,34 +10,6 @@ import { getEthOnchainStakes } from "@/actions/kiln";
 import { useQuery } from "@tanstack/react-query";
 import { StakingDashboardSkeleton } from "@/components/sections/stakingDashboardSkeleton";
 
-const balanceList = [
-  {
-    id: 1,
-    ethBalance: 100,
-    totalPrice: 1000,
-  },
-  {
-    id: 2,
-    ethBalance: 200,
-    totalPrice: 2000,
-  },
-  {
-    id: 3,
-    ethBalance: 300,
-    totalPrice: 3000,
-  },
-  {
-    id: 4,
-    ethBalance: 400,
-    totalPrice: 4000,
-  },
-  {
-    id: 5,
-    ethBalance: 500,
-    totalPrice: 5000,
-  },
-];
-
 export default function StakingDashboard() {
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
