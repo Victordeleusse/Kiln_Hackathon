@@ -1,5 +1,6 @@
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import { optionManagerABI, erc20ABI, OPTION_MANAGER_ADDRESS, USDC_ADDRESS } from '../config/contract-config';
+import { watchContractEvent } from '@wagmi/core'
 
 export function useCreatePutOption() {
   const { writeContract, data: hash, error } = useWriteContract();

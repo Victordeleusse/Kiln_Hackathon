@@ -13,11 +13,16 @@ import { Toggle } from "@/components/ui/toggle";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-
+import { watchContractEvent } from "@wagmi/core";
+import { config } from "@/components/providers/web3Provider";
 import { useCreatePutOption } from '../../hooks/useCreatePutOption';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { toast } from 'sonner';
+
+import { optionManagerABI, OPTION_MANAGER_ADDRESS } from "@/config/contract-config";
+
+
 
 export function PutForm() {
   const [date, setDate] = useState<Date>();
@@ -27,6 +32,16 @@ export function PutForm() {
   const { address, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { createOption, isLoading, isSuccess, error } = useCreatePutOption();
+
+  const unwatch = watchContractEvent(config, {
+    address: OPTION_MANAGER_ADDRESS,
+    abi: optionManagerABI,
+    eventName: "OptionCreated",
+    onLogs(logs) {
+      console.log('New logs!', logs)
+    },
+  });
+  unwatch();
 
   useEffect(() => {
     if (isSuccess) {
@@ -61,6 +76,7 @@ export function PutForm() {
       });
 
       if (success) {
+        console.log(success);
         toast.success('Option created successfully!');
       } else {
         toast.error('Failed to create option');

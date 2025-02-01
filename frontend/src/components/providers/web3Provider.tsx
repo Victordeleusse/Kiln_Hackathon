@@ -15,8 +15,7 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 
-
-const config = getDefaultConfig({
+export const config = getDefaultConfig({
   appName: 'My Wallet Connect',
   projectId: "6ea86adddd3f285b0710cc3ef5a59737",
   chains: [sepolia],
