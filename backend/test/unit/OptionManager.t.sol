@@ -57,7 +57,11 @@ contract TestOptionManager is Test {
 
 	function testCreatePutOption() public m_createPutOption {
     
+<<<<<<< HEAD
         (OptionManager.OptionType optionType, address optionSeller,, uint256 strikePrice,,,,,) = optionManager.options(0);
+=======
+        (OptionManager.OptionType optionType, address optionSeller,, uint256 strikePrice,,,,,,) = optionManager.options(0);
+>>>>>>> 5d4c57966ae89f84472d7082b8058b689fbae520
         
         assertEq(uint256(optionType), 0); // Ensure it's a PUT
         assertEq(optionSeller, seller);

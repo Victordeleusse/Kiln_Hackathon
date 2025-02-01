@@ -1,7 +1,4 @@
-"use client"
-import { use, useEffect, useState } from "react";
-import Image from "next/image";
-import { hello } from "@/api/actions";
+import { PutForm } from "@/components/forms/putForm";
 
 export default function Home() {
   const [greeting, setGreeting] = useState("victor le bg");
@@ -15,9 +12,8 @@ export default function Home() {
   }, [])
 
   return (
-    <section>
-      <h1>{greeting}</h1>
-
+    <section className="container min-h-screen ">
+      <PutForm />
     </section>
   );
 }

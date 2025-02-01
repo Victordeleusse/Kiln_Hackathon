@@ -202,11 +202,9 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
         Option storage option = options[optionId];
         require(option.seller != address(0), "Option does not exist or has expired");
         require(option.buyer == address(0), "Option already bought");
-
         IERC20(usdcAddress).safeTransferFrom(msg.sender, option.seller, option.premium);
 
         option.buyer = msg.sender;
-
         emit OptionBought(optionId, msg.sender);
     }
 
