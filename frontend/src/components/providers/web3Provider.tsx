@@ -6,7 +6,7 @@ import {
   RainbowKitProvider,
   darkTheme
 } from '@rainbow-me/rainbowkit';
-import { WagmiProvider } from 'wagmi';
+import { http, WagmiProvider } from 'wagmi';
 import {
   sepolia,
 } from 'wagmi/chains';
@@ -19,6 +19,9 @@ export const config = getDefaultConfig({
   appName: 'My Wallet Connect',
   projectId: "6ea86adddd3f285b0710cc3ef5a59737",
   chains: [sepolia],
+  transports: {
+    [sepolia.id]: http()
+  },
   ssr: true,
 });
 

@@ -13,7 +13,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { watchContractEvent } from "@wagmi/core";
+import { useWatchContractEvent } from "wagmi";
 import { config } from "@/components/providers/web3Provider";
 import { useCreatePutOption } from '../../hooks/useCreatePutOption';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
@@ -33,7 +33,7 @@ export function PutForm() {
   const { openConnectModal } = useConnectModal();
   const { createOption, isLoading, isSuccess, error } = useCreatePutOption();
 
-  const unwatch = watchContractEvent(config, {
+  useWatchContractEvent({
     address: OPTION_MANAGER_ADDRESS,
     abi: optionManagerABI,
     eventName: "OptionCreated",
@@ -41,7 +41,6 @@ export function PutForm() {
       console.log('New logs!', logs)
     },
   });
-  unwatch();
 
   useEffect(() => {
     if (isSuccess) {
