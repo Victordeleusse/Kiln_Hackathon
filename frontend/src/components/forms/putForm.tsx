@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -14,15 +14,61 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { useCreatePutOption } from '../../hooks/useCreatePutOption';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useAccount } from 'wagmi';
+import { toast } from 'sonner';
+
 export function PutForm() {
   const [date, setDate] = useState<Date>();
   const [enableSpiko, setEnableSpiko] = useState(false);
   const [spikoType, setSpikoType] = useState<"eur" | "usd">("eur");
 
+  const { address, isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+  const { createOption, isLoading, isSuccess, error } = useCreatePutOption();
+
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success("Option successfully created!");
+      setDate(undefined); // Réinitialise la date
+      // document.getElementById("putForm")?.reset(); // Reset le formulaire
+    }
+  }, [isSuccess]); // Exécuté à chaque changement de isSuccess
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('submit');
-    //TODO: retrieve seller address and set asset transferred to false
+    
+    if (!isConnected || !address) {
+      openConnectModal?.();
+      return;
+    }
+
+    if (!date) {
+      toast.error('Please select an expiry date');
+      return;
+    }
+
+    const formData = new FormData(e.currentTarget);
+    
+    try {
+      const success = await createOption({
+        strikePrice: formData.get('strikePrice') as string,
+        premiumPrice: formData.get('premiumPrice') as string,
+        expiry: date,
+        asset: formData.get('assetAddress') as string,
+        amount: formData.get('amount') as string
+      });
+
+      if (success) {
+        toast.success('Option created successfully!');
+      } else {
+        toast.error('Failed to create option');
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      toast.error('An error occurred while creating the option');
+    }
   };
 
   return (
@@ -139,7 +185,12 @@ export function PutForm() {
                   </div>
                 </Toggle>
               </div>
-              <Button type="submit" className="w-full text-base mt-4">Submit</Button>
+              <Button type="submit" className="w-full text-base mt-4" disabled={isLoading || !isConnected}>
+                {isLoading ? 'Creating...' : 'Submit'}
+              </Button>
+              {isSuccess && (
+                <p className="text-green-600 mt-2 text-center">✅ Option successfully created!</p>
+              )}
             </form>
           </CardContent>
         </Card>
