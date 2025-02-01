@@ -13,8 +13,8 @@ import { Toggle } from "@/components/ui/toggle";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useWatchContractEvent } from "wagmi";
-import { config } from "@/components/providers/web3Provider";
+import { watchContractEvent } from "@wagmi/core";
+import { config } from "@/lib/constant";
 import { useCreatePutOption } from '../../hooks/useCreatePutOption';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
@@ -27,21 +27,31 @@ import { optionManagerABI, OPTION_MANAGER_ADDRESS } from "@/config/contract-conf
 export function PutForm() {
   const [date, setDate] = useState<Date>();
   const [enableSpiko, setEnableSpiko] = useState(false);
-  const [spikoType, setSpikoType] = useState<"eur" | "usd">("eur");
 
   const { address, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { createOption, isLoading, isSuccess, error } = useCreatePutOption();
+  const { createOption, isLoading, isSuccess } = useCreatePutOption();
 
-  useWatchContractEvent({
+  const unWatch = watchContractEvent(config, {
     address: OPTION_MANAGER_ADDRESS,
     abi: optionManagerABI,
     eventName: "OptionCreated",
     onLogs(logs) {
       console.log('New logs!', logs)
     },
-  });
+  })
 
+  unWatch();
+
+  //usewatchcontractevent({
+  //  address: OPTION_MANAGER_ADDRESS,
+  //  abi: optionManagerABI,
+  //  eventName: "OptionCreated",
+  //  onLogs(logs) {
+  //    console.log('New logs!', logs)
+  //  },
+  //});
+  //
   useEffect(() => {
     if (isSuccess) {
       toast.success("Option successfully created!");
@@ -52,7 +62,7 @@ export function PutForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!isConnected || !address) {
       openConnectModal?.();
       return;
@@ -64,7 +74,7 @@ export function PutForm() {
     }
 
     const formData = new FormData(e.currentTarget);
-    
+
     try {
       const success = await createOption({
         strikePrice: formData.get('strikePrice') as string,
