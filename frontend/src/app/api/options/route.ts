@@ -51,7 +51,7 @@ export async function GET(req: Request) {
     const options = await prisma.putOption.findMany({
       where: {
         ...(sellerAddress && { seller_address: sellerAddress }),
-        ...(buyerAddress && { buyer_address: buyerAddress })
+        ...(buyerAddress === "null" ? { buyer_address: null } : buyerAddress ? { buyer_address: buyerAddress } : {})
       },
       orderBy: {
         createdAt: 'desc'

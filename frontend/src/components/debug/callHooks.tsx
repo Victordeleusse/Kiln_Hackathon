@@ -22,14 +22,15 @@ export function CallHooks() {
   const handleGetOptions = async (type: "seller" | "buyer") => {
     setIsDebugLoading(true);
     try {
-      const options = await getOptions(type, updatedAddress);
-      setDebugResult(options);
-      toast.success(`Options ${type} récupérées avec succès`);
+        const queryAddress = updatedAddress.trim() === "" ? "null" : updatedAddress;
+        const options = await getOptions(type, updatedAddress);
+        setDebugResult(options);
+        toast.success(`Options ${type} récupérées avec succès`);
     } catch (err) {
-      console.error(err);
-      toast.error(`Erreur lors de la récupération des options ${type}`);
+        console.error(err);
+        toast.error(`Erreur lors de la récupération des options ${type}`);
     } finally {
-      setIsDebugLoading(false);
+        setIsDebugLoading(false);
     }
   };
 

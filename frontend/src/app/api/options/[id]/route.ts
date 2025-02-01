@@ -3,9 +3,9 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function PATCH(req: Request, context: { params: { id: string } }) {
+export async function PATCH(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = context.params;
+    const { id } = (await context.params);
 
     if (!id || isNaN(parseInt(id))) {
       return NextResponse.json({
@@ -41,9 +41,9 @@ export async function PATCH(req: Request, context: { params: { id: string } }) {
 }
 
 
-export async function DELETE(req: Request, context: { params: { id: string } }) {
+export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
     try {
-        const id = context.params.id;
+        const id = (await context.params).id;
 
         if (!id || isNaN(parseInt(id))) {
             return NextResponse.json({
