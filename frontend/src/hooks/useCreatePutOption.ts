@@ -43,19 +43,6 @@ export function useCreatePutOption() {
         ]
       });
 
-      // Create in database
-      await fetch('/api/options', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          strike_price: strikePrice,
-          premium_price: premiumPrice,
-          expiry: expiry.toISOString(),
-          asset,
-          seller_address: address,
-        })
-      });
-
       return true;
     } catch (err) {
       console.error('Error creating option:', err);
@@ -68,5 +55,50 @@ export function useCreatePutOption() {
     isLoading: isConfirming,
     isSuccess: isConfirmed,
     error
+  };
+}
+
+export function pushCreatedPutOptionInDatabase() {
+
+  const { address } = useAccount();
+
+  const pushPutOptionInDatabase = async ({
+    id_blockchain,
+    strikePrice,
+    premiumPrice,
+    expiry,
+    asset,
+    amount
+  }: {
+    id_blockchain: string,
+    strikePrice: string,
+    premiumPrice: string,
+    expiry: Date,
+    asset: string,
+    amount: string
+  }) => {
+    try {
+      await fetch('/api/options', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id_blockchain: id_blockchain,
+          strike_price: strikePrice,
+          premium_price: premiumPrice,
+          expiry: expiry.toISOString(),
+          asset,
+          amount,
+          seller_address: address,
+        })
+      });
+
+      return true;
+    } catch (err) {
+      console.error('Error creating option:', err);
+      return false;
+    }
+  };
+  return {
+    pushPutOptionInDatabase,
   };
 }

@@ -18,6 +18,7 @@ export async function POST(req: Request) {
 
     const putOption = await prisma.PutOption.create({
       data: {
+        id_blockchain: parseFloat(data.id_blockchain), 
         strike_price: parseFloat(data.strike_price),
         premium_price: parseFloat(data.premium_price),
         expiry: new Date(data.expiry),

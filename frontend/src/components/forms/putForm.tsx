@@ -15,32 +15,49 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWatchContractEvent } from "wagmi";
 import { config } from "@/components/providers/web3Provider";
-import { useCreatePutOption } from '../../hooks/useCreatePutOption';
+import { useCreatePutOption, pushCreatedPutOptionInDatabase } from '../../hooks/useCreatePutOption';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { toast } from 'sonner';
 
 import { optionManagerABI, OPTION_MANAGER_ADDRESS } from "@/config/contract-config";
 
-
-
 export function PutForm() {
   const [date, setDate] = useState<Date>();
   const [enableSpiko, setEnableSpiko] = useState(false);
   const [spikoType, setSpikoType] = useState<"eur" | "usd">("eur");
+  const [formData, setFormData] = useState<Record<string, FormDataEntryValue | null>>({});
 
   const { address, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
   const { createOption, isLoading, isSuccess, error } = useCreatePutOption();
+  const { pushPutOptionInDatabase } = pushCreatedPutOptionInDatabase();
 
+  
   useWatchContractEvent({
     address: OPTION_MANAGER_ADDRESS,
     abi: optionManagerABI,
     eventName: "OptionCreated",
     onLogs(logs) {
-      console.log('New logs!', logs)
-    },
-  });
+      console.log('New logs!', logs[0].args.optionId);
+      const optionId = logs[0].args.optionId ? logs[0].args.optionId.toString() : "0";
+      const strikePrice = logs[0].args.strikePrice ? logs[0].args.strikePrice.toString() : "0";
+      const premiumPrice = logs[0].args.premium ? logs[0].args.premium.toString() : "0";
+      const expiry = logs[0].args.expiry ? new Date(Number(logs[0].args.expiry) * 1000) : new Date();
+      const asset = logs[0].args.asset ? logs[0].args.asset.toString() : "";
+      const amount = logs[0].args.assetAmount ? logs[0].args.assetAmount.toString() : "0";
+
+      const optionIdNumber = Number(optionId);
+
+      pushPutOptionInDatabase({
+        id_blockchain: optionId,
+        strikePrice,
+        premiumPrice,
+        expiry,
+        asset,
+        amount,
+      });
+  }});
 
   useEffect(() => {
     if (isSuccess) {
@@ -69,22 +86,16 @@ export function PutForm() {
       const success = await createOption({
         strikePrice: formData.get('strikePrice') as string,
         premiumPrice: formData.get('premiumPrice') as string,
-        expiry: date,
+        expiry: date ?? new Date(),
         asset: formData.get('assetAddress') as string,
         amount: formData.get('amount') as string
       });
-
-      if (success) {
-        console.log(success);
-        toast.success('Option created successfully!');
-      } else {
-        toast.error('Failed to create option');
-      }
     } catch (err) {
       console.error('Error:', err);
       toast.error('An error occurred while creating the option');
     }
-  };
+  }
+
 
   return (
     <div className="container mx-auto px-4 py-12">

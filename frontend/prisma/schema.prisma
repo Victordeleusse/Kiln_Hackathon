@@ -12,15 +12,18 @@ datasource db {
 
 model PutOption {
   id               Int      @id @default(autoincrement())
+  id_blockchain    Int?
   strike_price     Float
   premium_price    Float
   expiry           DateTime
   asset            String
+  amount           Int?
   seller_address   String
   buyer_address    String?
   asset_transfered Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
 
   @@index([asset])
   @@index([seller_address])
