@@ -28,8 +28,9 @@ export async function getEthOnchainStakes() {
     }
 
     const data = await response.json();
-    const formattedData = data.data.map((item) => {
+    const formattedData = data.data.map((item, index) => {
       return {
+        id: index,
         owner: item.owner,
         contract: "0x0000000000000000000000000000000000000000",
         balance: (Number(item.balance) / 1e18),
