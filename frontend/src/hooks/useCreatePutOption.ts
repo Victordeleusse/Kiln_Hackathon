@@ -24,7 +24,7 @@ export function blockchainCreatePutOption() {
   }) => {
     try {
       // First approve USDC spending
-      await writeContract({
+       writeContract({
         address: USDC_ADDRESS,
         abi: erc20ABI,
         functionName: 'approve',
@@ -32,7 +32,7 @@ export function blockchainCreatePutOption() {
       });
 
       // Then create the option
-      await writeContract({
+       writeContract({
         address: OPTION_MANAGER_ADDRESS,
         abi: optionManagerABI,
         functionName: 'createOptionPut',

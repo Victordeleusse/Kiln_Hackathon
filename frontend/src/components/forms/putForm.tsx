@@ -14,7 +14,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWatchContractEvent } from "wagmi";
-// import { config } from "@/components/providers/web3Provider";
+import { config } from "@/components/providers/web3Provider";
 import { blockchainCreatePutOption, databaseCreatePutOption } from '../../hooks/useCreatePutOption';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
@@ -32,7 +32,6 @@ export function PutForm() {
   const { openConnectModal } = useConnectModal();
   const { createOption, isLoading, isSuccess, error } = blockchainCreatePutOption();
   const { pushPutOptionInDatabase } = databaseCreatePutOption();
-
   
   useWatchContractEvent({
     address: OPTION_MANAGER_ADDRESS,
@@ -47,7 +46,7 @@ export function PutForm() {
       const asset = logs[0].args.asset ? logs[0].args.asset.toString() : "";
       const amount = logs[0].args.assetAmount ? logs[0].args.assetAmount.toString() : "0";
 
-      const optionIdNumber = Number(optionId);
+      // const optionIdNumber = Number(optionId);
 
       pushPutOptionInDatabase({
         id_blockchain: optionId,
@@ -58,8 +57,6 @@ export function PutForm() {
         amount,
       });
   }});
-
-  // unWatch();
 
   //usewatchcontractevent({
   //  address: OPTION_MANAGER_ADDRESS,
@@ -101,12 +98,12 @@ export function PutForm() {
         asset: formData.get('assetAddress') as string,
         amount: formData.get('amount') as string
       });
+      console.log(response)
     } catch (err) {
       console.error('Error:', err);
       toast.error('An error occurred while creating the option');
     }
   }
-
 
   return (
     <div className="container mx-auto px-4 py-12">

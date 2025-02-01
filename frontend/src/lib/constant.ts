@@ -11,7 +11,8 @@ export const config = getDefaultConfig({
   projectId: "6ea86adddd3f285b0710cc3ef5a59737",
   chains: [sepolia],
   transports: {
-    [sepolia.id]: http("https://shape-sepolia.g.alchemy.com/v2/KALyc7WPg-lCe8q7twsCHSf67bLe3Tt0"),
+    // [sepolia.id]: http("https://shape-sepolia.g.alchemy.com/v2/KALyc7WPg-lCe8q7twsCHSf67bLe3Tt0"),
+    [sepolia.id]: http("https://eth-sepolia.g.alchemy.com/v2/xoQYV6KR0NnDDVg6I57RJtAJnRXP5Sqm")
   },
   ssr: true,
 });
