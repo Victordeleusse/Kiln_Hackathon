@@ -15,6 +15,10 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { useCreatePutOption } from '../../hooks/useCreatePutOption';
+import { useGetOption } from '../../hooks/useGetOption';
+import { useUpdateOption } from '../../hooks/useUpdateOption';
+import { useDeleteOption } from '../../hooks/useDeleteOption';
+
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { toast } from 'sonner';
@@ -26,15 +30,77 @@ export function PutForm() {
 
   const { address, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
-  const { createOption, isLoading, isSuccess, error } = useCreatePutOption();
-
-  useEffect(() => {
-    if (isSuccess) {
-      toast.success("Option successfully created!");
-      setDate(undefined); // Réinitialise la date
-      // document.getElementById("putForm")?.reset(); // Reset le formulaire
+  
+  const [updatedAdress, setUpdatedAdress] = useState<string>('');
+  const [debugId, setDebugId] = useState<string>('');
+  const [debugResult, setDebugResult] = useState<any>(null);
+  const [isDebugLoading, setIsDebugLoading] = useState(false);
+  
+  const { createOption } = useCreatePutOption();
+  const { getOptions } = useGetOption();
+  const { updateOption } = useUpdateOption();
+  const { deleteOption } = useDeleteOption();
+  
+  const handleGetOptions = async (type: 'seller' | 'buyer') => {
+    setIsDebugLoading(true);
+    try {
+      const options = await getOptions(type, updatedAdress);
+      setDebugResult(options);
+      toast.success(`Options ${type} récupérées avec succès`);
+    } catch (err) {
+      console.error(err);
+      toast.error(`Erreur lors de la récupération des options ${type}`);
+    } finally {
+      setIsDebugLoading(false);
     }
-  }, [isSuccess]); // Exécuté à chaque changement de isSuccess
+  };
+
+  const handleUpdateBuyer = async () => {
+    setIsDebugLoading(true);
+    try {
+      const updated = await updateOption(Number(debugId), {
+        buyer_address: updatedAdress
+      });
+      setDebugResult(updated);
+      toast.success('Adresse du buyer mise à jour avec succès');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors de la mise à jour du buyer');
+    } finally {
+      setIsDebugLoading(false);
+    }
+  };
+  
+  const handleUpdateAssetTransfered = async (value: boolean) => {
+    setIsDebugLoading(true);
+    try {
+        const updated = await updateOption(Number(debugId), {
+          asset_transfered: value
+        });
+        setDebugResult(updated);
+        toast.success('Asset marqué comme transféré avec succès');
+      } catch (err) {
+        console.error(err);
+        toast.error('Erreur lors de la mise à jour du transfert');
+      } finally {
+        setIsDebugLoading(false);
+      }
+  };
+  
+  const handleDeleteOption = async () => {
+    setIsDebugLoading(true);
+    try {
+      await deleteOption(Number(debugId));
+      setDebugResult({ message: 'Option supprimée avec succès' });
+      toast.success('Option supprimée avec succès');
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors de la suppression');
+    } finally {
+      setIsDebugLoading(false);
+    }
+  };
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -52,7 +118,7 @@ export function PutForm() {
     const formData = new FormData(e.currentTarget);
     
     try {
-      const success = await createOption({
+      const response = await createOption({
         strikePrice: formData.get('strikePrice') as string,
         premiumPrice: formData.get('premiumPrice') as string,
         expiry: date,
@@ -60,7 +126,8 @@ export function PutForm() {
         amount: formData.get('amount') as string
       });
 
-      if (success) {
+      console.log("Response:", response);
+      if (response) {
         toast.success('Option created successfully!');
       } else {
         toast.error('Failed to create option');
@@ -185,16 +252,113 @@ export function PutForm() {
                   </div>
                 </Toggle>
               </div>
-              <Button type="submit" className="w-full text-base mt-4" disabled={isLoading || !isConnected}>
-                {isLoading ? 'Creating...' : 'Submit'}
-              </Button>
-              {isSuccess && (
-                <p className="text-green-600 mt-2 text-center">✅ Option successfully created!</p>
-              )}
+              <Button type="submit" className="w-full text-base mt-4" disabled={!isConnected}>Submit</Button>
             </form>
           </CardContent>
         </Card>
       </div>
-    </div >
+
+
+      {/* Section Debug */}
+      <div className="mt-8">
+        <Card className="w-full max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Debug Section</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <Input
+                  placeholder="Address"
+                  value={updatedAdress}
+                  onChange={(e) => setUpdatedAdress(e.target.value)}
+                  className="flex-1"
+                />
+                <Input
+                  placeholder="Option ID"
+                  value={debugId}
+                  onChange={(e) => setDebugId(e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Get Operations</h3>
+                <div className="flex gap-2 flex-wrap">
+                  <Button 
+                    onClick={() => handleGetOptions('seller')}
+                    disabled={isDebugLoading || !updatedAdress}
+                  >
+                    Get Seller Options
+                  </Button>
+                  <Button 
+                    onClick={() => handleGetOptions('buyer')}
+                    disabled={isDebugLoading || !updatedAdress}
+                  >
+                    Get Buyer Options
+                  </Button>
+                </div>
+              </div>
+
+              {/* Update Operations */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Update Operations</h3>
+                <div className="flex gap-2 flex-wrap">
+                  <Button 
+                    onClick={handleUpdateBuyer}
+                    disabled={isDebugLoading || !debugId || !updatedAdress}
+                    variant="outline"
+                  >
+                    Update Buyer
+                  </Button>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Transfer Asset</h3>
+                    <div className="flex gap-2">
+                      {/* Bouton pour mettre asset_transfered à true */}
+                      <Button 
+                        onClick={() => handleUpdateAssetTransfered(true)}
+                        disabled={isDebugLoading || !debugId}
+                        variant="outline"
+                      >
+                        Mark as Transferred
+                      </Button>
+
+                      {/* Bouton pour mettre asset_transfered à false */}
+                      <Button 
+                        onClick={() => handleUpdateAssetTransfered(false)}
+                        disabled={isDebugLoading || !debugId}
+                        variant="outline"
+                      >
+                        Undo Transfer
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Delete Operation */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Delete Operation</h3>
+                <Button 
+                  onClick={handleDeleteOption}
+                  disabled={isDebugLoading || !debugId}
+                  variant="destructive"
+                >
+                  Delete Option
+                </Button>
+              </div>
+            </div>
+
+            {/* Résultats */}
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold mb-2">Result:</h3>
+              <pre className="bg-gray-600 p-4 rounded-lg overflow-auto max-h-60">
+                {debugResult ? JSON.stringify(debugResult, null, 2) : 'No result yet'}
+              </pre>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
