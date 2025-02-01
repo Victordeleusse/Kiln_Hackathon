@@ -1,4 +1,8 @@
-export const ABI = [
+export const OPTION_MANAGER_ADDRESS =
+  "0x48f9219Cc45aD25c14aaBedf70d12b37041Bb9db"; // Your contract address
+export const USDC_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"; // USDC address on Sepolia
+
+export const optionManagerABI = [
   {
     inputs: [
       { internalType: "address", name: "_usdcAddress", type: "address" },
@@ -55,6 +59,12 @@ export const ABI = [
   { inputs: [], name: "OptionManager__buyOptionFailed", type: "error" },
   { inputs: [], name: "OptionManager__callStrikeFailed", type: "error" },
   { inputs: [], name: "OptionManager__putStrikeFailed", type: "error" },
+  { inputs: [], name: "ReentrancyGuardReentrantCall", type: "error" },
+  {
+    inputs: [{ internalType: "address", name: "token", type: "address" }],
+    name: "SafeERC20FailedOperation",
+    type: "error",
+  },
   {
     anonymous: false,
     inputs: [
@@ -214,7 +224,7 @@ export const ABI = [
       { internalType: "bool", name: "upkeepNeeded", type: "bool" },
       { internalType: "bytes", name: "performData", type: "bytes" },
     ],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -265,11 +275,6 @@ export const ABI = [
         name: "assetTransferedToTheContract",
         type: "bool",
       },
-      {
-        internalType: "bool",
-        name: "fundTransferedToTheContract",
-        type: "bool",
-      },
     ],
     stateMutability: "view",
     type: "function",
@@ -303,4 +308,34 @@ export const ABI = [
     type: "function",
   },
   { stateMutability: "payable", type: "receive" },
-];
+] as const;
+
+export const erc20ABI = [
+  {
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    name: "approve",
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" },
+    ],
+    name: "allowance",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [{ name: "account", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
