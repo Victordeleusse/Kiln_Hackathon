@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAccount } from "wagmi";
 import { useGetOption } from "@/hooks/useGetOption";
 import { StakingDashboardSkeleton } from "@/components/sections/stakingDashboardSkeleton";
+import { BlockchainSendAssetToContract } from "@/hooks/useUpdateOption";
 
 type OptionData = {
   id: number;
@@ -26,6 +27,8 @@ export function MyOptions() {
   const { address } = useAccount();
   const { data: options, isLoading } = useGetOption("buyer", String(address));
 
+  const { blockchain_sendAssetToContract } = BlockchainSendAssetToContract();
+
   if (isLoading) {
     return <StakingDashboardSkeleton />;
   }
@@ -34,13 +37,8 @@ export function MyOptions() {
   const depositedOptions = options?.filter((option: OptionData) => option.asset_transfered) || [];
   const notDepositedOptions = options?.filter((option: OptionData) => !option.asset_transfered) || [];
 
-  const handleDeposit = async (optionId: number) => {
-    try {
-      console.log(`Depositing option with ID: ${optionId}`);
-      // Ajouter ici l'appel à la fonction de dépôt sur le smart contract
-    } catch (error) {
-      console.error("Error depositing option:", error);
-    }
+  const handleDeposit = async (optionId: string, asset: string, amount: string) => {
+    blockchain_sendAssetToContract({ optionId, asset, amount });
   };
 
   return (
@@ -114,7 +112,7 @@ export function MyOptions() {
                       <TableCell className="text-right">
                         <Button
                           variant="default"
-                          onClick={() => handleDeposit(option.id)}
+                          onClick={() => handleDeposit(String(option.id_blockchain), option.asset, String(option.amount))}
                           className="h-10 px-6"
                         >
                           Deposit

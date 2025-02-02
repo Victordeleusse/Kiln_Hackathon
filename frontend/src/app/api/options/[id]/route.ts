@@ -20,8 +20,13 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     if (buyer_address !== undefined) updateData.buyer_address = buyer_address;
     if (asset_transfered !== undefined) updateData.asset_transfered = asset_transfered;
 
+
+    const optionList = await prisma.putOption.findMany({
+      where: { id_blockchain: parseInt(id) },
+    });
+
     const updatedOption = await prisma.putOption.update({
-      where: { id: parseInt(id) },
+      where: { id: optionList[0].id },
       data: updateData
     });
 
@@ -38,7 +43,6 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     }, { status: 500 });
   }
 }
-
 
 export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
   try {

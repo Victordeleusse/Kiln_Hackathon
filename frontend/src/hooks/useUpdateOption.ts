@@ -66,7 +66,7 @@ export function BlockchainSendAssetToContract() {
         console.log('Approving spending of', amount, 'of', assetAddress);
         console.log(isETH);
         writeContract({
-          address: assetAddress as `0x${string}`,
+          address: assetAddress,
           abi: erc20ABI,
           functionName: 'approve',
           args: [
@@ -74,9 +74,12 @@ export function BlockchainSendAssetToContract() {
             BigInt(amount)
           ]
         });
+        console.log('Approved spending of', amount, 'of', assetAddress);
       }
 
+
       // Then send asset to contract
+      console.log('Sending asset to contract');
       writeContract({
         address: OPTION_MANAGER_ADDRESS,
         abi: optionManagerABI,
@@ -85,6 +88,7 @@ export function BlockchainSendAssetToContract() {
           BigInt(optionId)
         ],
       });
+      console.log('Sent asset to contract');
 
       return true;
     } catch (err) {
@@ -145,7 +149,7 @@ export function useUpdateOption() {
   ) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/options/${id}`, {
+      const response = await fetch(`/ api / options / ${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'

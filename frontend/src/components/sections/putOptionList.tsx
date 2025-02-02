@@ -7,7 +7,7 @@ import { Trash2 } from "lucide-react";
 import { useGetOption } from "@/hooks/useGetOption";
 import { useAccount } from "wagmi";
 import { StakingDashboardSkeleton } from "@/components/sections/stakingDashboardSkeleton";
-import { useDeleteOption } from "@/hooks/useDeleteOption";
+import { useDeleteOption, useBlockchainDeleteOption } from "@/hooks/useDeleteOption";
 
 type OptionData = {
   id: number;
@@ -27,7 +27,8 @@ type OptionData = {
 export function PutOptionList() {
   const { address } = useAccount();
   const { data: options, isLoading } = useGetOption("seller", String(address));
-  const { deleteOption, isLoading: isDeleting } = useDeleteOption();
+
+  const { blockhainDeleteOption, isLoading: isDeleting } = useBlockchainDeleteOption();
 
   if (isLoading) {
     return <StakingDashboardSkeleton />;
@@ -38,12 +39,7 @@ export function PutOptionList() {
   const boughtOptions = options?.filter((option: OptionData) => option.buyer_address) || [];
 
   const handleDelete = async (id: number) => {
-    try {
-      const success = await deleteOption(id);
-
-    } catch (error) {
-      console.error('Error deleting option:', error);
-    }
+    blockhainDeleteOption(String(id));
   };
 
   return (
@@ -88,7 +84,7 @@ export function PutOptionList() {
                         <Button
                           variant="destructive"
                           size="icon"
-                          onClick={() => handleDelete(option.id)}
+                          onClick={() => handleDelete(option.id_blockchain)}
                           className="h-10 w-10"
                           disabled={isDeleting}
                         >

@@ -31,7 +31,7 @@ export function PutForm({ address }: { address?: string }) {
   const { createOption, isLoading } = useBlockchainCreatePutOption();
   const { pushPutOptionInDatabase } = useDatabaseCreatePutOption();
   const { updateOption } = useUpdateOption();
-  const { deleteOption } = useDeleteOption();
+  const { deleteOptionInDatabase } = useDeleteOption();
 
   // Listen for OptionCreated event
   useWatchContractEvent({
@@ -83,7 +83,7 @@ export function PutForm({ address }: { address?: string }) {
       const optionId = logs[0].args.optionId ? logs[0].args.optionId.toString() : "0";
       const optionIdNumber = Number(optionId);
 
-      deleteOption(optionIdNumber);
+      deleteOptionInDatabase(optionIdNumber);
     }
   });
 

@@ -9,6 +9,7 @@ export function useGetOption(type: 'seller' | 'buyer', param: string) {
       throw new Error('Failed to fetch options');
     }
     const result = await response.json();
+    console.log(result);
     return result.data;
   };
 
