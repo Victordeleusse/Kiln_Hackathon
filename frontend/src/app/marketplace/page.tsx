@@ -5,10 +5,36 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useGetOptions } from "@/hooks/useGetOptions";
+import { useBlockchainBuyOption } from "@/hooks/useUpdateOption";
+import { useWatchContractEvent } from "wagmi";
+import { OPTION_MANAGER_ADDRESS, optionManagerABI } from "@/lib/web3";
+import { useUpdateOption } from "@/hooks/useUpdateOption";
+
 
 export default function Marketplace() {
   const { options } = useGetOptions();
+  const { blockchainBuyOption, isLoading } = useBlockchainBuyOption();
 
+  const { updateOption } = useUpdateOption();
+  useWatchContractEvent({
+    address: OPTION_MANAGER_ADDRESS,
+    abi: optionManagerABI,
+    eventName: "OptionBought",
+    onLogs(logs) {
+      console.log('New logs BUY!', logs[0].args.optionId);
+      const optionId = logs[0].args.optionId ? logs[0].args.optionId.toString() : "0";
+      const optionIdNumber = Number(optionId);
+      const optionBuyer = logs[0].args.buyer ? logs[0].args.buyer.toString() : "";
+
+      updateOption(optionIdNumber, { buyer_address: optionBuyer });
+    }
+  });
+
+  const handleClick = async (id: number, premium: number) => {
+    await blockchainBuyOption(String(id), String(premium));
+  };
+
+  //console.log(options);
   return (
     <div className="container mx-auto px-4 py-16">
       <Card className="w-full max-w-5xl mx-auto">
@@ -41,7 +67,9 @@ export default function Marketplace() {
                       {option.seller.slice(0, 6)}...{option.seller.slice(-4)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button onClick={() => console.log(`Buying option ${index}`)} className="md:text-lg">
+                      <Button
+                        onClick={() => handleClick(option.id, option.premium)}
+                        className="md:text-lg">
                         Buy Option
                       </Button>
                     </TableCell>

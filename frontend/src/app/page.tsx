@@ -21,10 +21,10 @@ export default function Home() {
           <Tabs defaultValue="allOptions" className="w-full">
             <TabsList className="grid w-full grid-cols-2 h-fit">
               <TabsTrigger value="allOptions" className="text-lg py-1">
-                Available & Bought Options
+                Available & Created Options
               </TabsTrigger>
               <TabsTrigger value="myOptions" className="text-lg py-1">
-                My Created & Bought Options
+                Claimed & Bought Options
               </TabsTrigger>
             </TabsList>
 
