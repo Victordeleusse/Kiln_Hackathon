@@ -138,14 +138,6 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
         emit OptionDeleted(optionId);
     }
 
-    /**
-     * @dev Create a PUT option.
-     * @param strikePrice The strike price in USDC.
-     * @param premium The premium for the option.
-     * @param expiry The expiration timestamp of the option.
-     * @param asset The address of the ERC20 asset to lock for the option.
-     * @param assetAmount The amount of the asset to lock for the option.
-     */
 	function createOptionPut(
         uint256 strikePrice,
         uint256 premium,
@@ -155,7 +147,6 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
     ) external nonReentrant {
         require(expiry > block.timestamp, "Expiry must be in the future");
         require(assetAmount > 0 && premium > 0 && strikePrice > 0, "Amount must be greater than 0");
-        require(asset != address(0), "Asset address must be valid");
 
         IERC20(usdcAddress).safeTransferFrom(msg.sender, address(this), strikePrice);
 
@@ -175,10 +166,7 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
         optionCount++;
     }
 
-    /**
-     * @dev Allows a seller to delete a PUT option if not already purchased.
-     * @param optionId The ID of the option to delete.
-     */
+
     function deleteOptionPut(uint256 optionId) external {
         Option storage option = options[optionId];
         require(option.seller != address(0), "Option does not exist or has expired");
@@ -194,10 +182,6 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
         emit OptionDeleted(optionId);
     }
 
-    /**
-     * @dev Allows a buyer to purchase a PUT option.
-     * @param optionId The ID of the option to purchase.
-     */
     function buyOption(uint256 optionId) external nonReentrant {
         Option storage option = options[optionId];
         require(option.seller != address(0), "Option does not exist or has expired");
@@ -208,31 +192,32 @@ contract OptionManager is AutomationCompatibleInterface, ReentrancyGuard {
         emit OptionBought(optionId, msg.sender);
     }
 
-    /**
-     * @dev Allows the buyer of a PUT option to send the asset amount to the contract.
-     * This must be done before the expiry date.
-     * @param optionId The ID of the option.
-     */
-    function sendAssetToContract(uint256 optionId) external payable {
+    function sendERC20AssetToContract(uint256 optionId) external {
         Option storage option = options[optionId];
         require(option.seller != address(0), "Option does not exist or has expired");
         require(msg.sender == option.buyer, "Only the buyer can call this function");
         require(!option.assetTransferedToTheContract, "Asset amount already stored");
-
-        if (option.asset == ETH_ADDRESS) {
-            require(msg.value == option.assetAmount, "Incorrect ETH amount sent");
-        } else {
-            IERC20(option.asset).safeTransferFrom(msg.sender, address(this), option.assetAmount);}
+        require(option.asset != ETH_ADDRESS, "This function is for ERC20 tokens only");
+        
+        IERC20(option.asset).safeTransferFrom(msg.sender, address(this), option.assetAmount);
         
         option.assetTransferedToTheContract = true;
         emit AssetSentToTheContract(optionId, msg.sender);
     }
 
-    /**
-     * @dev Allows the buyer of a PUT option to send the asset amount to the contract.
-     * This must be done before the expiry date.
-     * @param optionId The ID of the option.
-     */
+    function sendETHToContract(uint256 optionId) external payable {
+        Option storage option = options[optionId];
+        require(option.seller != address(0), "Option does not exist or has expired");
+        require(msg.sender == option.buyer, "Only the buyer can call this function");
+        require(!option.assetTransferedToTheContract, "Asset amount already stored");
+        require(option.asset == ETH_ADDRESS, "This function is for ETH only");
+        require(msg.value >= option.assetAmount, "Incorrect ETH amount sent");
+        
+        option.assetTransferedToTheContract = true;
+        emit AssetSentToTheContract(optionId, msg.sender);
+    }
+
+
     function reclaimAssetFromContract(uint256 optionId) external {
         Option storage option = options[optionId];
         require(option.seller != address(0), "Option does not exist or has expired");

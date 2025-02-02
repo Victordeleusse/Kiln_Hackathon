@@ -13,14 +13,14 @@ contract BuyPut is Script {
 	error BuyPut_invalidChainName();
 
 	/* State Variables */
-	address public SELLER = 0x4d7233Cab735078318ac948b1400fBe660048830;
-	address public BUYER = 0xD2C2011d8c700094712C43435d16E3A9703e7F96;
+	address public SELLER = 0x39b8294B9411A265D371774d36f95C6f1fa008A3;
+	address public BUYER = 0x39b8294B9411A265D371774d36f95C6f1fa008A3;
     
 	OptionManager private optionManager;
 	IERC20 private usdc;
 	IERC20 private fight_token;
 	
-	address private constant FIGHT_TOKEN_ADDRESS = 0x6e6aD3E15a255A1fAfbF19C2EC2426147071CA0C; //FightToken ERC20
+	address private constant FIGHT_TOKEN_ADDRESS = 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238; //FightToken ERC20
 	uint256 public constant ASSET_AMOUNT = 1;
 
 	uint256 public constant STRIKE_PRICE = 1e5; //0.1 USDC
@@ -66,9 +66,9 @@ contract BuyPut is Script {
 
 			vm.startBroadcast(BUYER);
             usdc.approve(optionManagerContractAddress, PREMIUM);
-			optionManager.buyOption(4);
-            usdc.approve(optionManagerContractAddress, PREMIUM);
-			optionManager.buyOption(5);
+			optionManager.buyOption(48);
+            // usdc.approve(optionManagerContractAddress, PREMIUM);
+			// optionManager.buyOption(5);
 			vm.stopBroadcast();
 
 			// console.log("Seller USDC balance:", usdc.balanceOf(SELLER));
