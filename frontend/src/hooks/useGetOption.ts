@@ -1,27 +1,26 @@
-import { useState } from 'react';
-import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 
-export function useGetOption() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+export function useGetOption(type: 'seller' | 'buyer', param: string) {
+  const queryKey = ['options', type, param]; // Unique query key for caching
 
-  const getOptions = async (type: 'seller' | 'buyer', param: string) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/options?${type}=${param}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch options');
-      }
-      const result = await response.json();
-      return result.data;
-    } catch (err) {
-      setError(err as Error);
-      toast.error('Failed to fetch options');
-      return null;
-    } finally {
-      setIsLoading(false);
+  const fetchOptions = async () => {
+    const response = await fetch(`/api/options?${type}=${param}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch options');
     }
+    const result = await response.json();
+    return result.data;
   };
 
-  return { getOptions, isLoading, error };
+  const { data, isLoading } = useQuery({
+    queryKey,
+    queryFn: fetchOptions,
+    staleTime: 1000 * 60 * 5,
+    retry: 2,
+  });
+
+  return {
+    data,
+    isLoading,
+  };
 }

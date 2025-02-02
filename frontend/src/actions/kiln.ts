@@ -32,7 +32,7 @@ export async function getEthOnchainStakes() {
       return {
         id: index,
         owner: item.owner,
-        contract: "0x0000000000000000000000000000000000000000",
+        contract: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
         balance: (Number(item.balance) / 1e18),
         totalPrice: (Number(item.balance) / 1e18) * ethPrice
       }

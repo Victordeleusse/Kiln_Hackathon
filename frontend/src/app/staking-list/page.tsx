@@ -70,7 +70,7 @@ export default function StakingDashboard() {
                     {expandedRow === item.id && (
                       <TableRow className="bg-muted/50" key={item.id}>
                         <TableCell colSpan={3} className="py-6">
-                          <PutForm address="0x0000000000000000" />
+                          <PutForm address={item.contract} />
                         </TableCell>
                       </TableRow>
                     )}

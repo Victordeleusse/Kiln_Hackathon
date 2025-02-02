@@ -1,32 +1,50 @@
-import { useState } from 'react';
-//TODO: fix toast logic
-import { toast } from 'sonner';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function useDeleteOption() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
 
   const deleteOption = async (id: number) => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`/api/options/${id}`, {
-        method: 'DELETE'
-      });
+    const response = await fetch(`/api/options/${id}`, {
+      method: 'DELETE',
+    });
 
-      if (!response.ok) {
-        throw new Error('Failed to delete option');
-      }
-
-      toast.success('Option deleted successfully');
-      return true;
-    } catch (err) {
-      setError(err as Error);
-      toast.error('Failed to delete option');
-      return false;
-    } finally {
-      setIsLoading(false);
+    if (!response.ok) {
+      throw new Error('Failed to delete option');
     }
+
+    return true;
   };
 
-  return { deleteOption, isLoading, error };
+  const mutation = useMutation({
+    mutationFn: deleteOption,
+    onMutate: async (id: number) => {
+      await queryClient.cancelQueries({ queryKey: ['options'] });
+
+      const previousOptions = queryClient.getQueryData(['options']);
+
+      queryClient.setQueryData(['options'], (old: any) =>
+        old.filter((option: any) => option.id !== id)
+      );
+
+      return { previousOptions };
+    },
+    onError: (error: Error, id: number, context: any) => {
+      console.error('Error deleting option:', error.message);
+      queryClient.setQueryData(['options'], context.previousOptions);
+    },
+    onSuccess: () => {
+      console.log('Option deleted successfully');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['options'] });
+    },
+  });
+
+  return {
+    deleteOption: mutation.mutate,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+    isSuccess: mutation.isSuccess,
+  };
 }

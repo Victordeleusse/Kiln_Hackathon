@@ -25,11 +25,11 @@ export default function Home() {
             </TabsList>
 
             <TabsContent value="allOptions">
-              <PutOptionList />
+              hello world
             </TabsContent>
 
             <TabsContent value="myOptions">
-              hello world
+              <PutOptionList />
             </TabsContent>
           </Tabs>
         </CardContent>

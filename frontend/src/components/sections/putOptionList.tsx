@@ -1,32 +1,49 @@
 "use client";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { useGetOption } from "@/hooks/useGetOption";
+import { useAccount } from "wagmi";
+import { StakingDashboardSkeleton } from "@/components/sections/stakingDashboardSkeleton";
+import { useDeleteOption } from "@/hooks/useDeleteOption";
 
 type OptionData = {
   id: number;
-  address: number;
-  balance: number;
-  totalPrice: number;
-  contract: string;
+  id_blockchain: number;
+  strike_price: number;
+  premium_price: number;
+  expiry: string;
+  asset: string;
+  amount: number;
+  seller_address: string;
+  buyer_address: string | null;
+  asset_transfered: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
-
 export function PutOptionList() {
-  const availableOptions = fakeData.filter((option) => option.address === 0);
-  const boughtOptions = fakeData.filter((option) => option.address > 0);
+  const { address } = useAccount();
+  const { data: options, isLoading } = useGetOption("seller", address || "");
+  const { deleteOption, isLoading: isDeleting } = useDeleteOption();
 
-  const handleDelete = (id: number) => {
-    console.log("Deleting option:", id);
-    // Add delete logic here
+  if (isLoading) {
+    return <StakingDashboardSkeleton />;
+  }
+
+  // Filter options based on buyer_address
+  const availableOptions = options?.filter((option: OptionData) => !option.buyer_address) || [];
+  const boughtOptions = options?.filter((option: OptionData) => option.buyer_address) || [];
+
+  const handleDelete = async (id: number) => {
+    try {
+      const success = await deleteOption(id);
+
+    } catch (error) {
+      console.error('Error deleting option:', error);
+    }
   };
 
   return (
@@ -47,26 +64,33 @@ export function PutOptionList() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-lg py-6">Balance</TableHead>
-                    <TableHead className="text-lg py-6">Total Price</TableHead>
-                    <TableHead className="text-lg py-6">Contract</TableHead>
+                    <TableHead className="text-lg py-6">Strike Price</TableHead>
+                    <TableHead className="text-lg py-6">Premium Price</TableHead>
+                    <TableHead className="text-lg py-6">Expiry</TableHead>
+                    <TableHead className="text-lg py-6">Asset</TableHead>
+                    <TableHead className="text-lg py-6">Amount</TableHead>
                     <TableHead className="text-right text-lg py-6">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {availableOptions.map((option) => (
+                  {availableOptions.map((option: OptionData) => (
                     <TableRow key={option.id}>
-                      <TableCell className="text-lg py-6">{option.balance} ETH</TableCell>
-                      <TableCell className="text-lg py-6">${option.totalPrice}</TableCell>
-                      <TableCell className="text-lg py-6 font-mono">
-                        {option.contract.slice(0, 6)}...{option.contract.slice(-4)}
+                      <TableCell className="text-lg py-6">${option.strike_price}</TableCell>
+                      <TableCell className="text-lg py-6">${option.premium_price}</TableCell>
+                      <TableCell className="text-lg py-6">
+                        {new Date(option.expiry).toLocaleDateString()}
                       </TableCell>
+                      <TableCell className="text-lg py-6 font-mono">
+                        {option.asset.slice(0, 6)}...{option.asset.slice(-4)}
+                      </TableCell>
+                      <TableCell className="text-lg py-6">{option.amount}</TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="destructive"
                           size="icon"
                           onClick={() => handleDelete(option.id)}
                           className="h-10 w-10"
+                          disabled={isDeleting}
                         >
                           <Trash2 className="h-5 w-5" />
                         </Button>
@@ -75,7 +99,7 @@ export function PutOptionList() {
                   ))}
                   {availableOptions.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-lg text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-lg text-muted-foreground">
                         No available options found
                       </TableCell>
                     </TableRow>
@@ -90,28 +114,34 @@ export function PutOptionList() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-lg py-6">Balance</TableHead>
-                    <TableHead className="text-lg py-6">Total Price</TableHead>
-                    <TableHead className="text-lg py-6">Contract</TableHead>
+                    <TableHead className="text-lg py-6">Strike Price</TableHead>
+                    <TableHead className="text-lg py-6">Premium Price</TableHead>
+                    <TableHead className="text-lg py-6">Expiry</TableHead>
+                    <TableHead className="text-lg py-6">Asset</TableHead>
+                    <TableHead className="text-lg py-6">Amount</TableHead>
                     <TableHead className="text-lg py-6">Buyer Address</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {boughtOptions.map((option) => (
+                  {boughtOptions.map((option: OptionData) => (
                     <TableRow key={option.id}>
-                      <TableCell className="text-lg py-6">{option.balance} ETH</TableCell>
-                      <TableCell className="text-lg py-6">${option.totalPrice}</TableCell>
-                      <TableCell className="text-lg py-6 font-mono">
-                        {option.contract.slice(0, 6)}...{option.contract.slice(-4)}
+                      <TableCell className="text-lg py-6">${option.strike_price}</TableCell>
+                      <TableCell className="text-lg py-6">${option.premium_price}</TableCell>
+                      <TableCell className="text-lg py-6">
+                        {new Date(option.expiry).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-lg py-6 font-mono">
-                        {`Address ${option.address}`}
+                        {option.asset.slice(0, 6)}...{option.asset.slice(-4)}
+                      </TableCell>
+                      <TableCell className="text-lg py-6">{option.amount}</TableCell>
+                      <TableCell className="text-lg py-6 font-mono">
+                        {option.buyer_address?.slice(0, 6)}...{option.buyer_address?.slice(-4)}
                       </TableCell>
                     </TableRow>
                   ))}
                   {boughtOptions.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-lg text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-lg text-muted-foreground">
                         No bought options found
                       </TableCell>
                     </TableRow>
@@ -122,82 +152,6 @@ export function PutOptionList() {
           </TabsContent>
         </Tabs>
       </CardContent>
-
     </Card>
   );
 }
-
-const fakeData: OptionData[] = [
-  {
-    id: 1,
-    address: 6,
-    balance: 1,
-    totalPrice: 10,
-    contract: "0x0000000000000000000000000000000000000000",
-  },
-  {
-    id: 2,
-    address: 1,
-    balance: 2,
-    totalPrice: 20,
-    contract: "x0000000000000000000000000000000000000000",
-  },
-  {
-    id: 3,
-    address: 2,
-    balance: 3,
-    totalPrice: 30,
-    contract: "0x0000000000000000000000000000000000000000",
-  },
-  {
-    id: 4,
-    address: 3,
-    balance: 4,
-    totalPrice: 40,
-    contract: "0x0000000000000000000000000000000000000000",
-  },
-  {
-    id: 5,
-    address: 4,
-    balance: 5,
-    totalPrice: 50,
-    contract: "0x0000000000000000000000000000000000000000",
-  },
-  {
-    id: 1,
-    address: 0,
-    balance: 1,
-    totalPrice: 10,
-    contract: "0x0000000000000000000000000000000000000000",
-  },
-  {
-    id: 2,
-    address: 0,
-    balance: 2,
-    totalPrice: 20,
-    contract: "x0000000000000000000000000000000000000000",
-  },
-  {
-    id: 3,
-    address: 0,
-    balance: 3,
-    totalPrice: 30,
-    contract: "0x0000000000000000000000000000000000000000",
-  },
-  {
-    id: 4,
-    address: 0,
-    balance: 4,
-    totalPrice: 40,
-    contract: "0x0000000000000000000000000000000000000000",
-  },
-  {
-    id: 5,
-    address: 0,
-    balance: 5,
-    totalPrice: 50,
-    contract: "0x0000000000000000000000000000000000000000",
-  },
-]
-
-
