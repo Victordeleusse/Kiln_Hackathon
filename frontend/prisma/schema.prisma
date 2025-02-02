@@ -10,18 +10,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
-}
+model PutOption {
+  id               Int      @id @default(autoincrement())
+  id_blockchain    Int?
+  strike_price     Float
+  premium_price    Float
+  expiry           DateTime
+  asset            String
+  amount           Int?
+  seller_address   String
+  buyer_address    String?
+  asset_transfered Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
+  @@index([asset])
+  @@index([seller_address])
+  @@index([buyer_address])
 }
