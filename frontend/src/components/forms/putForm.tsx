@@ -20,6 +20,7 @@ import { blockchainCreatePutOption, databaseCreatePutOption } from '../../hooks/
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { toast } from 'sonner';
+import { useDeleteOption} from "@/hooks/useDeleteOption";
 
 import { optionManagerABI, OPTION_MANAGER_ADDRESS } from "@/config/contract-config";
 
@@ -33,7 +34,8 @@ export function PutForm() {
   const { openConnectModal } = useConnectModal();
   const { createOption, isLoading, isSuccess, error } = blockchainCreatePutOption();
   const { pushPutOptionInDatabase } = databaseCreatePutOption();
-  
+  const { deleteOptionInDatabase } = useDeleteOption();
+
   useWatchContractEvent({
     address: OPTION_MANAGER_ADDRESS,
     abi: optionManagerABI,
@@ -57,6 +59,18 @@ export function PutForm() {
         asset,
         amount,
       });
+  }});
+
+  useWatchContractEvent({
+    address: OPTION_MANAGER_ADDRESS,
+    abi: optionManagerABI,
+    eventName: "OptionDeleted",
+    onLogs(logs) {
+      console.log('New logs DELETE!', logs[0].args.optionId);
+      const optionId = logs[0].args.optionId ? logs[0].args.optionId.toString() : "0";
+      const optionIdNumber = Number(optionId);
+
+      deleteOptionInDatabase(optionIdNumber);
   }});
 
   //usewatchcontractevent({

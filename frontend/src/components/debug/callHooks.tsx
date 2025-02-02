@@ -7,30 +7,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useGetOption } from "../../hooks/useGetOption";
 import { useUpdateOption } from "../../hooks/useUpdateOption";
-import { useDeleteOption } from "../../hooks/useDeleteOption";
-
-import { useBlockchainBuyOption } from "../../hooks/useUpdateOption";
-import { useBlockchainSendAssetToContract } from "../../hooks/useUpdateOption";
-import { useBlockchainReclaimAssetFromContract } from "../../hooks/useUpdateOption";
+import { blockchainDeleteOption } from "../../hooks/useDeleteOption";
+import { blockchainBuyOption } from "../../hooks/useUpdateOption";
+import { BlockchainSendAssetToContract } from "../../hooks/useUpdateOption";
+import { BlockchainReclaimAssetFromContract } from "../../hooks/useUpdateOption";
 
 export function CallHooks() {
   const [updatedAddress, setUpdatedAddress] = useState<string>("");
   const [debugId, setDebugId] = useState<string>("");
-  const [premium, setPremium] = useState<string>("");
   const [assetAmount, setAssetAmount] = useState<string>("");
   const [assetAddress, setAssetAddress] = useState<string>("");
   const [isEth, setIsEth] = useState<boolean>(false);
   const [debugResult, setDebugResult] = useState<any>(null);
   const [isDebugLoading, setIsDebugLoading] = useState(false);
+  const [premium, setPremium] = useState<string>("");
+
 
   const { getOptions } = useGetOption();
   const { updateOption } = useUpdateOption();
-  const { deleteOption } = useDeleteOption();
-  
-  // New hooks for blockchain interactions
-  const { buyOption } = useBlockchainBuyOption();
-  const { sendAssetToContract } = useBlockchainSendAssetToContract();
-  const { reclaimAssetFromContract } = useBlockchainReclaimAssetFromContract();
+
+  const { blockhain_deleteOption } = blockchainDeleteOption();
+  const { blockchain_buyOption } = blockchainBuyOption();
+  const { blockchain_sendAssetToContract } = BlockchainSendAssetToContract();
+  const { blockchain_reclaimAssetFromContract } = BlockchainReclaimAssetFromContract();
 
   const handleGetOptions = async (type: "seller" | "buyer") => {
     setIsDebugLoading(true);
@@ -63,6 +62,7 @@ export function CallHooks() {
     }
   };
 
+
   const handleUpdateAssetTransfered = async (value: boolean) => {
     setIsDebugLoading(true);
     try {
@@ -84,7 +84,8 @@ export function CallHooks() {
   const handleDeleteOption = async () => {
     setIsDebugLoading(true);
     try {
-      await deleteOption(Number(debugId));
+      // await deleteOption(Number(debugId));
+      await blockhain_deleteOption(debugId);
       setDebugResult({ message: "Option supprimée avec succès" });
       toast.success("Option supprimée avec succès");
     } catch (err) {
@@ -98,7 +99,7 @@ export function CallHooks() {
   const handleBuyOption = async () => {
     setIsDebugLoading(true);
     try {
-      const result = await buyOption({
+      const result = await blockchain_buyOption({
         optionId: debugId,
         premium: premium
       });
@@ -115,7 +116,7 @@ export function CallHooks() {
   const handleSendAsset = async () => {
     setIsDebugLoading(true);
     try {
-      const result = await sendAssetToContract({
+      const result = await blockchain_sendAssetToContract({
         optionId: debugId,
         asset: assetAddress as `0x${string}`,
         amount: assetAmount,
@@ -134,7 +135,7 @@ export function CallHooks() {
   const handleReclaimAsset = async () => {
     setIsDebugLoading(true);
     try {
-      const result = await reclaimAssetFromContract({
+      const result = await blockchain_reclaimAssetFromContract({
         optionId: debugId
       });
       setDebugResult({ success: result, operation: "reclaimAsset" });
@@ -169,7 +170,7 @@ export function CallHooks() {
                 className="flex-1"
               />
             </div>
-
+  
             <div className="flex gap-4">
               <Input
                 placeholder="Premium Amount"
@@ -192,7 +193,7 @@ export function CallHooks() {
                 className="flex-1"
               />
             </div>
-
+  
             <div>
               <h3 className="text-lg font-semibold mb-2">Get Operations</h3>
               <div className="flex gap-2 flex-wrap">
@@ -210,7 +211,7 @@ export function CallHooks() {
                 </Button>
               </div>
             </div>
-
+  
             <div>
               <h3 className="text-lg font-semibold mb-2">Update Operations</h3>
               <div className="flex gap-2 flex-wrap">
@@ -221,29 +222,36 @@ export function CallHooks() {
                 >
                   Update Buyer
                 </Button>
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Transfer Asset</h3>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => handleUpdateAssetTransfered(true)}
-                      disabled={isDebugLoading || !debugId}
-                      variant="outline"
-                    >
-                      Mark as Transferred
-                    </Button>
-
-                    <Button
-                      onClick={() => handleUpdateAssetTransfered(false)}
-                      disabled={isDebugLoading || !debugId}
-                      variant="outline"
-                    >
-                      Undo Transfer
-                    </Button>
-                  </div>
-                </div>
+                <Button
+                  onClick={handleBuyOption}
+                  disabled={isDebugLoading || !debugId || !premium}
+                  variant="outline"
+                >
+                  Buy Option
+                </Button>
               </div>
             </div>
-
+  
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Transfer Asset</h3>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleUpdateAssetTransfered(true)}
+                  disabled={isDebugLoading || !debugId}
+                  variant="outline"
+                >
+                  Mark as Transferred
+                </Button>
+                <Button
+                  onClick={() => handleUpdateAssetTransfered(false)}
+                  disabled={isDebugLoading || !debugId}
+                  variant="outline"
+                >
+                  Undo Transfer
+                </Button>
+              </div>
+            </div>
+  
             <div>
               <h3 className="text-lg font-semibold mb-2">Delete Operation</h3>
               <Button
@@ -254,9 +262,8 @@ export function CallHooks() {
                 Delete Option
               </Button>
             </div>
-          </div>
-
-          <div>
+  
+            <div>
               <h3 className="text-lg font-semibold mb-2">Option Operations</h3>
               <div className="flex gap-2 flex-wrap">
                 <Button
@@ -282,15 +289,16 @@ export function CallHooks() {
                 </Button>
               </div>
             </div>
-    
-          <div className="mt-4">
-            <h3 className="text-lg font-semibold mb-2">Result:</h3>
-            <pre className="bg-gray-600 p-4 rounded-lg overflow-auto max-h-60">
-              {debugResult ? JSON.stringify(debugResult, null, 2) : "No result yet"}
-            </pre>
+  
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold mb-2">Result:</h3>
+              <pre className="bg-gray-600 p-4 rounded-lg overflow-auto max-h-60">
+                {debugResult ? JSON.stringify(debugResult, null, 2) : "No result yet"}
+              </pre>
+            </div>
           </div>
         </CardContent>
       </Card>
     </div>
-  );
+  );  
 }

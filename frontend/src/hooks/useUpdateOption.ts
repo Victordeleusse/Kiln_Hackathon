@@ -1,15 +1,16 @@
-import { useState } from 'react';
-import { toast } from 'sonner';
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import { optionManagerABI, erc20ABI, OPTION_MANAGER_ADDRESS, USDC_ADDRESS } from '../config/contract-config';
+import { watchContractEvent } from '@wagmi/core'
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 // Hook for buying an option
-export function useBlockchainBuyOption() {
+export function blockchainBuyOption() {
     const { writeContract, data: hash, error } = useWriteContract();
     const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
     const { address } = useAccount();
 
-    const buyOption = async ({
+    const blockchain_buyOption = async ({
         optionId,
         premium
     }: {
@@ -41,7 +42,7 @@ export function useBlockchainBuyOption() {
     };
 
     return {
-        buyOption,
+        blockchain_buyOption,
         isLoading: isConfirming,
         isSuccess: isConfirmed,
         error
@@ -51,12 +52,12 @@ export function useBlockchainBuyOption() {
 type Address = `0x${string}`;
 
 // Hook for sending asset to contract
-export function useBlockchainSendAssetToContract() {
+export function BlockchainSendAssetToContract() {
     const { writeContract, data: hash, error } = useWriteContract();
     const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
     const { address } = useAccount();
 
-    const sendAssetToContract = async ({
+    const blockchain_sendAssetToContract = async ({
         optionId,
         asset,
         amount,
@@ -102,7 +103,7 @@ export function useBlockchainSendAssetToContract() {
     };
 
     return {
-        sendAssetToContract,
+        blockchain_sendAssetToContract,
         isLoading: isConfirming,
         isSuccess: isConfirmed,
         error
@@ -110,12 +111,12 @@ export function useBlockchainSendAssetToContract() {
 }
 
 // Hook for reclaiming asset from contract
-export function useBlockchainReclaimAssetFromContract() {
+export function BlockchainReclaimAssetFromContract() {
     const { writeContract, data: hash, error } = useWriteContract();
     const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
     const { address } = useAccount();
 
-    const reclaimAssetFromContract = async ({
+    const blockchain_reclaimAssetFromContract = async ({
         optionId
     }: {
         optionId: string
@@ -136,12 +137,13 @@ export function useBlockchainReclaimAssetFromContract() {
     };
 
     return {
-        reclaimAssetFromContract,
+        blockchain_reclaimAssetFromContract,
         isLoading: isConfirming,
         isSuccess: isConfirmed,
         error
     };
 }
+
 
 export function useUpdateOption() {
     const [isLoading, setIsLoading] = useState(false);

@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
     console.log("DATA POST", data);
 
-    const putOption = await prisma.PutOption.create({
+    const putOption = await prisma.putOption.create({
       data: {
         id_blockchain: Number(data.id_blockchain), 
         strike_price: parseFloat(data.strike_price),
