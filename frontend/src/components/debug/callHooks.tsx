@@ -9,15 +9,28 @@ import { useGetOption } from "../../hooks/useGetOption";
 import { useUpdateOption } from "../../hooks/useUpdateOption";
 import { useDeleteOption } from "../../hooks/useDeleteOption";
 
+import { useBlockchainBuyOption } from "../../hooks/useUpdateOption";
+import { useBlockchainSendAssetToContract } from "../../hooks/useUpdateOption";
+import { useBlockchainReclaimAssetFromContract } from "../../hooks/useUpdateOption";
+
 export function CallHooks() {
   const [updatedAddress, setUpdatedAddress] = useState<string>("");
   const [debugId, setDebugId] = useState<string>("");
+  const [premium, setPremium] = useState<string>("");
+  const [assetAmount, setAssetAmount] = useState<string>("");
+  const [assetAddress, setAssetAddress] = useState<string>("");
+  const [isEth, setIsEth] = useState<boolean>(false);
   const [debugResult, setDebugResult] = useState<any>(null);
   const [isDebugLoading, setIsDebugLoading] = useState(false);
 
   const { getOptions } = useGetOption();
   const { updateOption } = useUpdateOption();
   const { deleteOption } = useDeleteOption();
+  
+  // New hooks for blockchain interactions
+  const { buyOption } = useBlockchainBuyOption();
+  const { sendAssetToContract } = useBlockchainSendAssetToContract();
+  const { reclaimAssetFromContract } = useBlockchainReclaimAssetFromContract();
 
   const handleGetOptions = async (type: "seller" | "buyer") => {
     setIsDebugLoading(true);
@@ -82,6 +95,58 @@ export function CallHooks() {
     }
   };
 
+  const handleBuyOption = async () => {
+    setIsDebugLoading(true);
+    try {
+      const result = await buyOption({
+        optionId: debugId,
+        premium: premium
+      });
+      setDebugResult({ success: result, operation: "buyOption" });
+      toast.success("Option bought successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Error buying option");
+    } finally {
+      setIsDebugLoading(false);
+    }
+  };
+
+  const handleSendAsset = async () => {
+    setIsDebugLoading(true);
+    try {
+      const result = await sendAssetToContract({
+        optionId: debugId,
+        asset: assetAddress as `0x${string}`,
+        amount: assetAmount,
+        isETH: isEth
+      });
+      setDebugResult({ success: result, operation: "sendAsset" });
+      toast.success("Asset sent to contract successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Error sending asset to contract");
+    } finally {
+      setIsDebugLoading(false);
+    }
+  };
+
+  const handleReclaimAsset = async () => {
+    setIsDebugLoading(true);
+    try {
+      const result = await reclaimAssetFromContract({
+        optionId: debugId
+      });
+      setDebugResult({ success: result, operation: "reclaimAsset" });
+      toast.success("Asset reclaimed successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Error reclaiming asset");
+    } finally {
+      setIsDebugLoading(false);
+    }
+  };
+
   return (
     <div className="mt-8">
       <Card className="w-full max-w-2xl mx-auto">
@@ -101,6 +166,29 @@ export function CallHooks() {
                 placeholder="Option ID"
                 value={debugId}
                 onChange={(e) => setDebugId(e.target.value)}
+                className="flex-1"
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <Input
+                placeholder="Premium Amount"
+                value={premium}
+                onChange={(e) => setPremium(e.target.value)}
+                className="flex-1"
+                type="text"
+              />
+              <Input
+                placeholder="Asset Amount"
+                value={assetAmount}
+                onChange={(e) => setAssetAmount(e.target.value)}
+                className="flex-1"
+                type="text"
+              />
+              <Input
+                placeholder="Asset Address"
+                value={assetAddress}
+                onChange={(e) => setAssetAddress(e.target.value)}
                 className="flex-1"
               />
             </div>
@@ -168,6 +256,33 @@ export function CallHooks() {
             </div>
           </div>
 
+          <div>
+              <h3 className="text-lg font-semibold mb-2">Option Operations</h3>
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  onClick={handleBuyOption}
+                  disabled={isDebugLoading || !debugId || !premium}
+                  variant="outline"
+                >
+                  Buy Option
+                </Button>
+                <Button
+                  onClick={handleSendAsset}
+                  disabled={isDebugLoading || !debugId || !assetAmount || !assetAddress}
+                  variant="outline"
+                >
+                  Send Asset
+                </Button>
+                <Button
+                  onClick={handleReclaimAsset}
+                  disabled={isDebugLoading || !debugId}
+                  variant="outline"
+                >
+                  Reclaim Asset
+                </Button>
+              </div>
+            </div>
+    
           <div className="mt-4">
             <h3 className="text-lg font-semibold mb-2">Result:</h3>
             <pre className="bg-gray-600 p-4 rounded-lg overflow-auto max-h-60">

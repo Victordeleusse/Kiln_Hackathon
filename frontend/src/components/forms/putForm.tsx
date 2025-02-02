@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWatchContractEvent } from "wagmi";
+import { CallHooks } from "@/components/debug/callHooks";
 import { config } from "@/components/providers/web3Provider";
 import { blockchainCreatePutOption, databaseCreatePutOption } from '../../hooks/useCreatePutOption';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
@@ -224,7 +225,7 @@ export function PutForm() {
           </CardContent>
         </Card>
       </div>
-      {/* <CallHooks /> */}
+      <CallHooks />
     </div>
   );
 }
