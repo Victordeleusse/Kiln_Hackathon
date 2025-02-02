@@ -7,17 +7,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useGetOption } from "../../hooks/useGetOption";
 import { useUpdateOption } from "../../hooks/useUpdateOption";
-import { useDeleteOption } from "../../hooks/useDeleteOption";
+import { useDeleteOption, blockchainDeleteOption } from "../../hooks/useDeleteOption";
+import { blockchainBuyOption } from "../../hooks/useUpdateOption";
 
 export function CallHooks() {
   const [updatedAddress, setUpdatedAddress] = useState<string>("");
   const [debugId, setDebugId] = useState<string>("");
   const [debugResult, setDebugResult] = useState<any>(null);
   const [isDebugLoading, setIsDebugLoading] = useState(false);
+  const [premium, setPremium] = useState<string>("");
+  const [assetAmount, setAssetAmount] = useState<string>("");
+  const [assetAddress, setAssetAddress] = useState<string>(""); 
 
   const { getOptions } = useGetOption();
   const { updateOption } = useUpdateOption();
-  const { deleteOption } = useDeleteOption();
+  // const { blockhain_deleteOption } = useDeleteOption();
+  const { blockhain_deleteOption } = blockchainDeleteOption();
+  const { blockhain_buyOption } = blockchainBuyOption();
 
   const handleGetOptions = async (type: "seller" | "buyer") => {
     setIsDebugLoading(true);
@@ -50,6 +56,20 @@ export function CallHooks() {
     }
   };
 
+  const handleBuyOption = async () => {
+    setIsDebugLoading(true);
+    try {
+      await blockhain_buyOption(debugId);
+      setDebugResult({ message: "Option achetée avec succès" });
+      toast.success("Option bought successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Error buying option");
+    } finally {
+      setIsDebugLoading(false);
+    }
+  };
+
   const handleUpdateAssetTransfered = async (value: boolean) => {
     setIsDebugLoading(true);
     try {
@@ -71,7 +91,8 @@ export function CallHooks() {
   const handleDeleteOption = async () => {
     setIsDebugLoading(true);
     try {
-      await deleteOption(Number(debugId));
+      // await deleteOption(Number(debugId));
+      await blockhain_deleteOption(debugId);
       setDebugResult({ message: "Option supprimée avec succès" });
       toast.success("Option supprimée avec succès");
     } catch (err) {
@@ -105,6 +126,29 @@ export function CallHooks() {
               />
             </div>
 
+            <div className="flex gap-4">
+              <Input
+                placeholder="Premium Amount"
+                value={premium}
+                onChange={(e) => setPremium(e.target.value)}
+                className="flex-1"
+                type="text"
+              />
+              <Input
+                placeholder="Asset Amount"
+                value={assetAmount}
+                onChange={(e) => setAssetAmount(e.target.value)}
+                className="flex-1"
+                type="text"
+              />
+              <Input
+                placeholder="Asset Address"
+                value={assetAddress}
+                onChange={(e) => setAssetAddress(e.target.value)}
+                className="flex-1"
+              />
+            </div>
+
             <div>
               <h3 className="text-lg font-semibold mb-2">Get Operations</h3>
               <div className="flex gap-2 flex-wrap">
@@ -132,6 +176,13 @@ export function CallHooks() {
                   variant="outline"
                 >
                   Update Buyer
+                </Button>
+                <Button
+                  onClick={handleBuyOption}
+                  disabled={isDebugLoading  !debugId  !premium}
+                  variant="outline"
+                >
+                  Buy Option
                 </Button>
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Transfer Asset</h3>

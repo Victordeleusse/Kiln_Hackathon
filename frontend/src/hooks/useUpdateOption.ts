@@ -1,5 +1,41 @@
+import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
+import { optionManagerABI, erc20ABI, OPTION_MANAGER_ADDRESS, USDC_ADDRESS } from '../config/contract-config';
+import { watchContractEvent } from '@wagmi/core'
 import { useState } from 'react';
 import { toast } from 'sonner';
+
+export function blockchainBuyOption() {
+  const { writeContract, data: hash, error } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
+  const { address } = useAccount();
+
+  const blockchain_buyOption = async (
+    id_blockchain: string,
+  ) => {
+      try {
+
+          // Buy the option
+          await writeContract({
+              address: OPTION_MANAGER_ADDRESS,
+              abi: optionManagerABI,
+              functionName: 'buyOption',
+              args: [BigInt(id_blockchain)]
+          });
+
+          return true;
+      } catch (err) {
+          console.error('Error buying option:', err);
+          return false;
+      }
+  };
+
+  return {
+      blockchain_buyOption,
+      isLoading: isConfirming,
+      isSuccess: isConfirmed,
+      error
+  };
+}
 
 export function useUpdateOption() {
     const [isLoading, setIsLoading] = useState(false);

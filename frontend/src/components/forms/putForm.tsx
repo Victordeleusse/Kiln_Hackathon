@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { CallHooks } from "@/components/debug/callHooks";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,6 +20,7 @@ import { blockchainCreatePutOption, databaseCreatePutOption } from '../../hooks/
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { toast } from 'sonner';
+import { useDeleteOption} from "@/hooks/useDeleteOption";
 
 import { optionManagerABI, OPTION_MANAGER_ADDRESS } from "@/config/contract-config";
 
@@ -32,7 +34,8 @@ export function PutForm() {
   const { openConnectModal } = useConnectModal();
   const { createOption, isLoading, isSuccess, error } = blockchainCreatePutOption();
   const { pushPutOptionInDatabase } = databaseCreatePutOption();
-  
+  const { deleteOptionInDatabase } = useDeleteOption();
+
   useWatchContractEvent({
     address: OPTION_MANAGER_ADDRESS,
     abi: optionManagerABI,
@@ -56,6 +59,18 @@ export function PutForm() {
         asset,
         amount,
       });
+  }});
+
+  useWatchContractEvent({
+    address: OPTION_MANAGER_ADDRESS,
+    abi: optionManagerABI,
+    eventName: "OptionDeleted",
+    onLogs(logs) {
+      console.log('New logs DELETE!', logs[0].args.optionId);
+      const optionId = logs[0].args.optionId ? logs[0].args.optionId.toString() : "0";
+      const optionIdNumber = Number(optionId);
+
+      deleteOptionInDatabase(optionIdNumber);
   }});
 
   //usewatchcontractevent({
@@ -224,7 +239,7 @@ export function PutForm() {
           </CardContent>
         </Card>
       </div>
-      {/* <CallHooks /> */}
+      <CallHooks />
     </div>
   );
 }

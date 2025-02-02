@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { idchain } from 'viem/chains';
 
 const prisma = new PrismaClient();
 
@@ -43,29 +44,39 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
 
 export async function DELETE(req: Request, context: { params: Promise<{ id: string }> }) {
     try {
-        const id = (await context.params).id;
+      const params = await context.params; 
+      const id = params.id;
+      console.log("DELETE", id);
+      const idNumber = Number(id);
+      console.log("DELETE2", idNumber);
 
-        if (!id || isNaN(parseInt(id))) {
-            return NextResponse.json({
-                success: false,
-                error: 'Valid option ID is required'
-            }, { status: 400 });
-        }
-        
-        await prisma.putOption.delete({
-            where: { id: parseInt(id) }
-        });
+      const existingOption = await prisma.PutOption.findMany({
+        where: {id_blockchain: idNumber},
+      })
 
+      if (!existingOption) {
         return NextResponse.json({
-            success: true,
-            message: 'Put option deleted successfully'
-        });
-        } catch (error) {
-        console.error('Error deleting put option:', error);
+          success: false,
+          error: "Put option not found",
+        }, { status: 404 });
+      }
 
-        return NextResponse.json({
-            success: false,
-            error: 'Failed to delete put option'
-        }, { status: 500 });
-    }
+      console.log("ID_TO_DELETE", existingOption[0].id)
+      
+      await prisma.PutOption.delete({
+          where: { id: existingOption[0].id }
+      });
+
+      return NextResponse.json({
+          success: true,
+          message: 'Put option deleted successfully'
+      });
+      } catch (error) {
+      console.error('Error deleting put option:', error);
+
+      return NextResponse.json({
+          success: false,
+          error: 'Failed to delete put option'
+      }, { status: 500 });
+  }
 }
