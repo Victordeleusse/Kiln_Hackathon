@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -13,16 +13,78 @@ import { Toggle } from "@/components/ui/toggle";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useWatchContractEvent } from "wagmi";
+import { useConnectModal } from '@rainbow-me/rainbowkit';
+import { useAccount } from 'wagmi';
+import { useBlockchainCreatePutOption, useDatabaseCreatePutOption } from '@/hooks/useCreatePutOption';
+import { optionManagerABI, OPTION_MANAGER_ADDRESS } from "@/lib/web3";
 
 export function PutForm({ address }: { address?: string }) {
   const [date, setDate] = useState<Date>();
   const [enableSpiko, setEnableSpiko] = useState(false);
-  const [spikoType, setSpikoType] = useState<"eur" | "usd">("eur");
+  const [assetAddress, setAssetAddress] = useState(address || ""); // Manage assetAddress in state
 
+  const { address: connectedAddress, isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+  const { createOption, isLoading } = useBlockchainCreatePutOption();
+  const { pushPutOptionInDatabase } = useDatabaseCreatePutOption();
+
+  // Listen for OptionCreated event
+  useWatchContractEvent({
+    address: OPTION_MANAGER_ADDRESS,
+    abi: optionManagerABI,
+    eventName: "OptionCreated",
+    onLogs(logs) {
+      const log = logs[0];
+      const optionId = log.args.optionId?.toString() || "0";
+      const strikePrice = log.args.strikePrice?.toString() || "0";
+      const premiumPrice = log.args.premium?.toString() || "0";
+      const expiry = log.args.expiry ? new Date(Number(log.args.expiry) * 1000) : new Date();
+      const asset = log.args.asset?.toString() || "";
+      const amount = log.args.assetAmount?.toString() || "0";
+
+      // Save the option to the database
+      pushPutOptionInDatabase({
+        id_blockchain: optionId,
+        strikePrice,
+        premiumPrice,
+        expiry,
+        asset,
+        amount,
+      });
+    },
+  });
+
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('submit');
-    //TODO: retrieve seller address and set asset transferred to false
+
+    // Check if the user is connected
+    if (!isConnected || !connectedAddress) {
+      openConnectModal?.();
+      return;
+    }
+
+    // Check if the expiry date is selected
+    if (!date) {
+      alert("Please select an expiry date.");
+      return;
+    }
+
+    const formData = new FormData(e.currentTarget);
+
+    try {
+      // Create the option on the blockchain
+      await createOption({
+        strikePrice: formData.get('strikePrice') as string,
+        premiumPrice: formData.get('premiumPrice') as string,
+        expiry: date,
+        asset: assetAddress, // Use the state value for assetAddress
+        amount: formData.get('amount') as string,
+      });
+    } catch (err) {
+      console.error('Error:', err);
+    }
   };
 
   return (
@@ -37,16 +99,13 @@ export function PutForm({ address }: { address?: string }) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Label className="text-lg block">
                   <span className='cursor-pointer'>Asset Address</span>
-                  {address ? (<Input
+                  <Input
                     name="assetAddress"
                     className="text-base mt-2"
-                    value={address || ''}
-                    disabled={!!address}
-                  />) : <Input
-                    name="assetAddress"
-                    className="text-base mt-2"
-                    disabled={!!address}
-                  />}
+                    value={assetAddress}
+                    disabled={!!address} // Disable if address is provided
+                    onChange={(e) => setAssetAddress(e.target.value)} // Add onChange handler
+                  />
                 </Label>
                 <Label className="text-lg block">
                   <span className='cursor-pointer'>Amount</span>
@@ -105,8 +164,8 @@ export function PutForm({ address }: { address?: string }) {
                   </div>
                 </Toggle>
               </div>
-              <Button type="submit" className="w-full text-base mt-4">
-                Create Put Option
+              <Button type="submit" className="w-full text-base mt-4" disabled={!isConnected || isLoading}>
+                {isLoading ? "Creating..." : "Create Put Option"}
               </Button>
             </form>
           </CardContent>
