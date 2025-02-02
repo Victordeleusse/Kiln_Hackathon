@@ -111,7 +111,7 @@ export function BlockchainReclaimAssetFromContract() {
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
   //const { address } = useAccount();
 
-  const blockchain_reclaimAssetFromContract = async ({
+  const blockchain_reclaimAssetFromContract =  ({
     optionId
   }: {
     optionId: string
@@ -149,7 +149,7 @@ export function useUpdateOption() {
   ) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/ api / options / ${id}`, {
+      const response = await fetch(`/api/options/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'

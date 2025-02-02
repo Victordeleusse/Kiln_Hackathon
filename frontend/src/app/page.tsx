@@ -7,7 +7,7 @@ import { PutOptionList } from "@/components/sections/putOptionList";
 import { MyOptions } from "@/components/sections/myOptions"; // Assurez-vous d'avoir ce composant
 
 export default function Home() {
-  return (
+  return ( 
     <section className="container">
       <PutForm />
       <Card className="w-full container mx-auto shadow-lg mb-10 mt-10">

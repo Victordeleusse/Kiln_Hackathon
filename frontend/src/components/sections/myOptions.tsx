@@ -37,7 +37,7 @@ export function MyOptions() {
   const depositedOptions = options?.filter((option: OptionData) => option.asset_transfered) || [];
   const notDepositedOptions = options?.filter((option: OptionData) => !option.asset_transfered) || [];
 
-  const handleDeposit = async (optionId: string, asset: string, amount: string) => {
+  const handleDeposit =  (optionId: string, asset: string, amount: string) => {
     blockchain_sendAssetToContract({ optionId, asset, amount });
   };
 
