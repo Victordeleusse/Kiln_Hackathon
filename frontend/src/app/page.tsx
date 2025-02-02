@@ -1,8 +1,10 @@
+
 "use client";
 import { PutForm } from "@/components/forms/putForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PutOptionList } from "@/components/sections/putOptionList";
+import { MyOptions } from "@/components/sections/myOptions"; // Assurez-vous d'avoir ce composant
 
 export default function Home() {
   return (
@@ -10,7 +12,9 @@ export default function Home() {
       <PutForm />
       <Card className="w-full container mx-auto shadow-lg mb-10 mt-10">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Put Options Dashboard</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">
+            Put Options Dashboard
+          </CardTitle>
         </CardHeader>
 
         <CardContent>
@@ -25,16 +29,15 @@ export default function Home() {
             </TabsList>
 
             <TabsContent value="allOptions">
-              hello world
+              <PutOptionList />
             </TabsContent>
 
             <TabsContent value="myOptions">
-              <PutOptionList />
+              <MyOptions />
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
-
     </section>
   );
 }

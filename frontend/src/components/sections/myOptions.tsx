@@ -3,11 +3,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
-import { useGetOption } from "@/hooks/useGetOption";
 import { useAccount } from "wagmi";
+import { useGetOption } from "@/hooks/useGetOption";
 import { StakingDashboardSkeleton } from "@/components/sections/stakingDashboardSkeleton";
-import { useDeleteOption } from "@/hooks/useDeleteOption";
 
 type OptionData = {
   id: number;
@@ -24,42 +22,75 @@ type OptionData = {
   updatedAt: string;
 };
 
-export function PutOptionList() {
+export function MyOptions() {
   const { address } = useAccount();
-  const { data: options, isLoading } = useGetOption("seller", String(address));
-  const { deleteOption, isLoading: isDeleting } = useDeleteOption();
+  const { data: options, isLoading } = useGetOption("buyer", String(address));
 
   if (isLoading) {
     return <StakingDashboardSkeleton />;
   }
 
-  // Filter options based on buyer_address
-  const availableOptions = options?.filter((option: OptionData) => !option.buyer_address) || [];
-  const boughtOptions = options?.filter((option: OptionData) => option.buyer_address) || [];
+  // Filtrer les options achetées
+  const depositedOptions = options?.filter((option: OptionData) => option.asset_transfered) || [];
+  const notDepositedOptions = options?.filter((option: OptionData) => !option.asset_transfered) || [];
 
-  const handleDelete = async (id: number) => {
+  const handleDeposit = async (optionId: number) => {
     try {
-      const success = await deleteOption(id);
-
+      console.log(`Depositing option with ID: ${optionId}`);
+      // Ajouter ici l'appel à la fonction de dépôt sur le smart contract
     } catch (error) {
-      console.error('Error deleting option:', error);
+      console.error("Error depositing option:", error);
     }
   };
 
   return (
     <Card className="w-full max-w-5xl mx-auto shadow-lg mb-10 mt-10">
       <CardContent>
-        <Tabs defaultValue="available" className="w-full">
+        <Tabs defaultValue="deposited" className="w-full">
           <TabsList className="grid w-full grid-cols-2 h-fit">
-            <TabsTrigger value="available" className="text-lg py-1">
-              Available Options ({availableOptions.length})
+            <TabsTrigger value="deposited" className="text-lg py-1">
+              Deposited Options ({depositedOptions.length})
             </TabsTrigger>
-            <TabsTrigger value="bought" className="text-lg py-1">
-              Bought Options ({boughtOptions.length})
+            <TabsTrigger value="notDeposited" className="text-lg py-1">
+              Not Deposited Options ({notDepositedOptions.length})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="available">
+          <TabsContent value="deposited">
+            <div className="rounded-md border mt-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-lg py-6">Strike Price</TableHead>
+                    <TableHead className="text-lg py-6">Premium Price</TableHead>
+                    <TableHead className="text-lg py-6">Expiry</TableHead>
+                    <TableHead className="text-lg py-6">Asset</TableHead>
+                    <TableHead className="text-lg py-6">Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {depositedOptions.map((option: OptionData) => (
+                    <TableRow key={option.id}>
+                      <TableCell className="text-lg py-6">${option.strike_price}</TableCell>
+                      <TableCell className="text-lg py-6">${option.premium_price}</TableCell>
+                      <TableCell className="text-lg py-6">{new Date(option.expiry).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-lg py-6 font-mono">{option.asset.slice(0, 6)}...{option.asset.slice(-4)}</TableCell>
+                      <TableCell className="text-lg py-6">{option.amount}</TableCell>
+                    </TableRow>
+                  ))}
+                  {depositedOptions.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-lg text-muted-foreground">
+                        No deposited options found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="notDeposited">
             <div className="rounded-md border mt-4">
               <Table>
                 <TableHeader>
@@ -73,34 +104,28 @@ export function PutOptionList() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {availableOptions.map((option: OptionData) => (
+                  {notDepositedOptions.map((option: OptionData) => (
                     <TableRow key={option.id}>
                       <TableCell className="text-lg py-6">${option.strike_price}</TableCell>
                       <TableCell className="text-lg py-6">${option.premium_price}</TableCell>
-                      <TableCell className="text-lg py-6">
-                        {new Date(option.expiry).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="text-lg py-6 font-mono">
-                        {option.asset.slice(0, 6)}...{option.asset.slice(-4)}
-                      </TableCell>
+                      <TableCell className="text-lg py-6">{new Date(option.expiry).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-lg py-6 font-mono">{option.asset.slice(0, 6)}...{option.asset.slice(-4)}</TableCell>
                       <TableCell className="text-lg py-6">{option.amount}</TableCell>
                       <TableCell className="text-right">
                         <Button
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => handleDelete(option.id)}
-                          className="h-10 w-10"
-                          disabled={isDeleting}
+                          variant="default"
+                          onClick={() => handleDeposit(option.id)}
+                          className="h-10 px-6"
                         >
-                          <Trash2 className="h-5 w-5" />
+                          Deposit
                         </Button>
                       </TableCell>
                     </TableRow>
                   ))}
-                  {availableOptions.length === 0 && (
+                  {notDepositedOptions.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-lg text-muted-foreground">
-                        No available options found
+                        No options to deposit
                       </TableCell>
                     </TableRow>
                   )}
@@ -109,47 +134,6 @@ export function PutOptionList() {
             </div>
           </TabsContent>
 
-          <TabsContent value="bought">
-            <div className="rounded-md border mt-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-lg py-6">Strike Price</TableHead>
-                    <TableHead className="text-lg py-6">Premium Price</TableHead>
-                    <TableHead className="text-lg py-6">Expiry</TableHead>
-                    <TableHead className="text-lg py-6">Asset</TableHead>
-                    <TableHead className="text-lg py-6">Amount</TableHead>
-                    <TableHead className="text-lg py-6">Buyer Address</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {boughtOptions.map((option: OptionData) => (
-                    <TableRow key={option.id}>
-                      <TableCell className="text-lg py-6">${option.strike_price}</TableCell>
-                      <TableCell className="text-lg py-6">${option.premium_price}</TableCell>
-                      <TableCell className="text-lg py-6">
-                        {new Date(option.expiry).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="text-lg py-6 font-mono">
-                        {option.asset.slice(0, 6)}...{option.asset.slice(-4)}
-                      </TableCell>
-                      <TableCell className="text-lg py-6">{option.amount}</TableCell>
-                      <TableCell className="text-lg py-6 font-mono">
-                        {option.buyer_address?.slice(0, 6)}...{option.buyer_address?.slice(-4)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {boughtOptions.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-lg text-muted-foreground">
-                        No bought options found
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </TabsContent>
         </Tabs>
       </CardContent>
     </Card>
