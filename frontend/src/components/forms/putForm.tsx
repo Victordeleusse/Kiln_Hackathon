@@ -21,6 +21,7 @@ import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { toast } from 'sonner';
 import { useDeleteOption} from "@/hooks/useDeleteOption";
+import { useUpdateOption } from "@/hooks/useUpdateOption";
 
 import { optionManagerABI, OPTION_MANAGER_ADDRESS } from "@/config/contract-config";
 
@@ -35,6 +36,7 @@ export function PutForm() {
   const { createOption, isLoading, isSuccess, error } = blockchainCreatePutOption();
   const { pushPutOptionInDatabase } = databaseCreatePutOption();
   const { deleteOptionInDatabase } = useDeleteOption();
+  const { updateOption } = useUpdateOption();
 
   useWatchContractEvent({
     address: OPTION_MANAGER_ADDRESS,
@@ -64,6 +66,19 @@ export function PutForm() {
   useWatchContractEvent({
     address: OPTION_MANAGER_ADDRESS,
     abi: optionManagerABI,
+    eventName: "OptionBought",
+    onLogs(logs) {
+      console.log('New logs BUY!', logs[0].args.optionId);
+      const optionId = logs[0].args.optionId ? logs[0].args.optionId.toString() : "0";
+      const optionIdNumber = Number(optionId);
+      const optionBuyer = logs[0].args.buyer ? logs[0].args.buyer.toString() : "";
+
+      updateOption(optionIdNumber, { buyer_address: optionBuyer });
+  }});
+
+  useWatchContractEvent({
+    address: OPTION_MANAGER_ADDRESS,
+    abi: optionManagerABI,
     eventName: "OptionDeleted",
     onLogs(logs) {
       console.log('New logs DELETE!', logs[0].args.optionId);
@@ -71,6 +86,36 @@ export function PutForm() {
       const optionIdNumber = Number(optionId);
 
       deleteOptionInDatabase(optionIdNumber);
+  }});
+
+  useWatchContractEvent({
+    address: OPTION_MANAGER_ADDRESS,
+    abi: optionManagerABI,
+    eventName: "AssetSentToTheContract",
+    onLogs(logs) {
+      console.log('New logs ASSET SEND TO!', logs[0].args.optionId);
+      const optionId = logs[0].args.optionId ? logs[0].args.optionId.toString() : "0";
+      const buyer = logs[0].args.buyer ? logs[0].args.buyer.toString() : "";
+      const optionIdNumber = Number(optionId);
+
+      updateOption(optionIdNumber, {
+        asset_transfered: true,
+      });
+  }});
+
+  useWatchContractEvent({
+    address: OPTION_MANAGER_ADDRESS,
+    abi: optionManagerABI,
+    eventName: "AssetReclaimFromTheContract",
+    onLogs(logs) {
+      console.log('New logs ASSET RECLAIM TO!', logs[0].args.optionId);
+      const optionId = logs[0].args.optionId ? logs[0].args.optionId.toString() : "0";
+      const buyer = logs[0].args.buyer ? logs[0].args.buyer.toString() : "";
+      const optionIdNumber = Number(optionId);
+
+      updateOption(optionIdNumber, {
+        asset_transfered: false,
+      });
   }});
 
   //usewatchcontractevent({
