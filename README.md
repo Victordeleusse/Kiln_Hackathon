@@ -77,5 +77,8 @@ To enhance market efficiency and better align option offerings with demand, Opti
 - Support for call options to allow buyers to lock in asset purchase prices.
 - Expansion to multi-chain environments for broader DeFi adoption.
 
+  ![image](https://github.com/user-attachments/assets/79697c4f-0227-49d2-8731-9d542b830244)
+
+
 ## Conclusion
 OptionManager provides a robust decentralized solution for hedging staked assets, reducing risk exposure while maintaining staking yields. By leveraging smart contracts, Chainlink automation, and ERC20 token security, it ensures seamless and trustless options trading.
